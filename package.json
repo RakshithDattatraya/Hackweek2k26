@@ -1,0 +1,12 @@
+{
+  "name": "enablement-video-pipeline",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "bun test",
+    "pipeline": "bun run src/pipeline/run.ts"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  }
+}
