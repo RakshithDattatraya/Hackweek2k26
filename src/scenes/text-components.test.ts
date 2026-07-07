@@ -24,3 +24,7 @@ test("cta renders headline", () => {
   expect(html).toContain("From merge to enablement.");
   expect(html).toContain("ctacard");
 });
+
+test("statement rejects a non-hex eyebrowColor (injection guard)", () => {
+  expect(() => statement.propsSchema.parse({ headline: "x", eyebrowColor: 'teal"><script>' })).toThrow();
+});

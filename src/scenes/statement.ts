@@ -4,7 +4,7 @@ import { esc } from "./types";
 
 export const statement: SceneComponent = {
   propsSchema: z.object({
-    eyebrow: z.string().optional(), eyebrowColor: z.string().optional(),
+    eyebrow: z.string().optional(), eyebrowColor: z.string().regex(/^#[0-9a-fA-F]{3,8}$/, "eyebrowColor must be a hex color").optional(),
     headline: z.string(), highlight: z.string().optional(), sub: z.string().optional(),
   }),
   render(props, t) {
