@@ -3,7 +3,7 @@ import { z } from "zod";
 export const SceneTypeSchema = z.enum(["hook", "capability", "demo", "positioning", "cta", "diagram"]);
 
 export const AssetRequirementSchema = z.object({
-  need: z.enum(["brand_intro", "diagram", "callout", "section_card", "brand_outro"]),
+  need: z.string(),
   spec: z.string(),
 });
 
