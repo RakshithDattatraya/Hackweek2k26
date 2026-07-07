@@ -1,0 +1,24 @@
+{
+  "feature_name": "Agentic Document Understanding",
+  "value_prop": "Extract data from any document with self-correcting agents.",
+  "persona": "Account Executive",
+  "when_to_use": "When a customer complains about brittle template-based extraction.",
+  "talking_points": [
+    "Handles unseen document layouts without retraining",
+    "Agents self-correct low-confidence fields",
+    "Cuts document-processing setup from weeks to hours"
+  ],
+  "scenes": [
+    { "id": "s1", "type": "hook", "duration": 4, "on_screen_text": "Documents shouldn't break your automations.", "narration": "Customers kept hitting broken extractions every time a document layout changed.", "asset_requirements": [] },
+    { "id": "s2", "type": "capability", "duration": 4, "on_screen_text": "Agentic Document Understanding", "narration": "Agentic Document Understanding reads any document and self-corrects its own low-confidence fields.", "asset_requirements": [] },
+    { "id": "s3", "type": "demo", "duration": 4, "on_screen_text": "See it adapt in real time", "narration": "Watch it handle a layout it has never seen before, with no retraining.", "asset_requirements": [] },
+    { "id": "s4", "type": "positioning", "duration": 4, "on_screen_text": "Use when extraction keeps breaking", "narration": "Bring this up when a customer says their current extraction breaks on new document types.", "asset_requirements": [] },
+    { "id": "s5", "type": "cta", "duration": 3, "on_screen_text": "Learn more on the docs hub", "narration": "Find the full enablement kit on the internal docs hub.", "asset_requirements": [] }
+  ],
+  "youtube_metadata": {
+    "title": "Agentic Document Understanding — Enablement",
+    "description": "Internal enablement walkthrough.",
+    "tags": ["uipath", "enablement", "document understanding"],
+    "chapters": [{ "title": "Hook", "start": 0 }]
+  }
+}
