@@ -1,0 +1,85 @@
+{
+  "$meta": {
+    "source": "UiPath Brand Book V3.3.pdf",
+    "extracted": "2026-07-07",
+    "note": "Design-token source of truth. Everything on-brand keys off this file. Generated CSS custom properties live in uipath-tokens.css."
+  },
+
+  "color": {
+    "primary": {
+      "roboticOrange": { "hex": "#FA4616", "rgb": [250, 70, 22],  "cmyk": [0, 86, 99, 0],  "role": "HERO color. Represents robots / RPA. Feature prominently; do not overuse." },
+      "agenticTeal":   { "hex": "#0BA2B3", "rgb": [11, 162, 179], "cmyk": [78, 16, 28, 0], "role": "Represents agents / agentic AI." },
+      "deepBlue":      { "hex": "#182126", "rgb": [24, 33, 38],   "cmyk": [80, 67, 62, 72], "role": "Backdrop for brand-related content. Primary dark." },
+      "brightWhite":   { "hex": "#FFFFFF", "rgb": [255, 255, 255], "cmyk": [0, 0, 0, 0],   "role": "Neutral canvas, not an emphasis color. Also represents people (with black)." }
+    },
+    "secondary": {
+      "brightBlue":   { "hex": "#CCF2FF", "rgb": [204, 242, 255] },
+      "darkBlue":     { "hex": "#1E6482", "rgb": [30, 100, 130] },
+      "offsetOrange": { "hex": "#A32200", "rgb": [163, 34, 0] },
+      "black":        { "hex": "#000000", "rgb": [0, 0, 0], "role": "Backdrop for platform-specific content; represents people on light bg." },
+      "testingPurple":{ "hex": "#8B288A", "rgb": [139, 40, 138], "role": "RESERVED for testing-related content only." },
+      "offsetGrey":   { "hex": "#D9D9D9", "rgb": [217, 217, 217] }
+    },
+    "tertiary": {
+      "roboticOrange": ["#FCC0C5", "#FA7678", "#FB6B45", "#CE340B"],
+      "agenticTeal":   ["#5BCBDE", "#A5E2F0", "#15839A", "#3CB5C2"],
+      "deepBlue":      ["#A0AAB9", "#646E78", "#3C464B", "#2D373C"],
+      "testingPurple": ["#FFCBFF", "#C862C8", "#721472", "#5A005A"]
+    },
+    "neutral": {
+      "grey50":  "#F6F6F6",
+      "grey300": "#B9B9B9",
+      "grey400": "#9D9D9D",
+      "grey600": "#616161",
+      "grey700": "#484848",
+      "grey800": "#343434"
+    },
+    "gradient": {
+      "brandLinear": { "type": "linear", "stops": [
+        { "color": "#FA4616", "at": "0%",   "name": "Robotic Orange" },
+        { "color": "#FFFFFF", "at": "50%",  "name": "Bright White" },
+        { "color": "#0BA2B3", "at": "100%", "name": "Agentic Teal" }
+      ]}
+    },
+    "rules": {
+      "hero": "Robotic Orange is the hero; feature prominently but avoid overuse.",
+      "semantic": "Orange = robots/RPA, Teal = agents, White/Black = people, Deep Blue = brand content, Black = platform content, Testing Purple = testing only.",
+      "logoForbiddenBg": "#A5E2F0"
+    }
+  },
+
+  "typography": {
+    "headline":    { "family": "Poppins", "weightCampaign": "Black", "weightGeneral": "Bold", "case": "sentence (Bold) / UPPERCASE (Black campaigns)", "tracking": -45, "leading": "tight (~130/145 general, 140/120 campaign)", "kerning": "metrics", "note": "Square full-stop glyph where applicable." },
+    "subheadline": { "family": "Urbane Rounded", "weight": "Medium", "case": "sentence", "leading": "auto ~1:1.2", "kerning": "metrics", "licensing": "PAID (Adobe Fonts / CC). Designers only. NOT freely webfont-embeddable — see webFallback." },
+    "body":        { "family": "Inter", "weight": "Regular", "leading": "auto" },
+    "cta":         { "family": "Poppins", "weight": "Semi Bold", "case": "sentence", "tracking": -25, "fallback": "Inter Bold (web/social/Canva)" },
+    "backup":      { "family": "Arial", "weights": ["Black", "Bold", "Regular"], "use": "PowerPoint + fallback when brand fonts unavailable." },
+    "availability": {
+      "poppins": "Free — Google Fonts (embeddable in HTML compositions).",
+      "inter": "Free — Google Fonts (embeddable in HTML compositions).",
+      "urbaneRounded": "Paid — Adobe. Use free fallback stack in HTML video compositions unless a webfont license is confirmed."
+    },
+    "webFallback": {
+      "subheadline": "Poppins Medium (until Urbane Rounded webfont license confirmed)"
+    }
+  },
+
+  "logo": {
+    "typeface": "Urbane Rounded",
+    "clearSpace": "= width of the 'U' in the logo",
+    "minSize": { "digital": "80px", "print": "1 inch (25mm)" },
+    "forbiddenBackground": "#A5E2F0",
+    "source": "UiPath Brand Center",
+    "assets": {
+      "orange":   { "file": "brand/logos/uipath-logo-orange.png", "size": [1290, 420], "format": "PNG (RGBA, transparent)", "use": "All-orange lockup — reserved use per brand book. Best on white / light / neutral backgrounds." },
+      "whiteout": { "file": null, "use": "White logo for colored/dark backgrounds (e.g. on Deep Blue). NEEDED — preferred for dark video scenes." },
+      "black":    { "file": null, "use": "Black logo for white/light backgrounds. NEEDED." }
+    },
+    "wanted": "SVG variants preferred over PNG for crisp scaling at video resolution and during zoom."
+  },
+
+  "voice": {
+    "attributes": ["human", "direct", "non-jargony", "warm", "bold", "substantive"],
+    "note": "Tone of voice is a core brand asset. Content director narration must match: human, direct, no jargon."
+  }
+}

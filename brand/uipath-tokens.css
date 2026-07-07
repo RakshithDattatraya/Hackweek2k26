@@ -1,0 +1,60 @@
+/* UiPath design tokens — generated from UiPath Brand Book V3.3.
+ * Source of truth: uipath-tokens.json. Import into every HyperFrames HTML composition.
+ * Poppins + Inter load from Google Fonts (free, embeddable). Urbane Rounded is paid/Adobe
+ * (designers only) — HTML compositions fall back to Poppins for subheads until a webfont
+ * license is confirmed. */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&family=Inter:wght@400;700;800&display=swap');
+
+:root {
+  /* ---- Primary ---- */
+  --uip-orange:        #FA4616; /* HERO — robots / RPA */
+  --uip-teal:          #0BA2B3; /* agents / agentic AI */
+  --uip-deep-blue:     #182126; /* brand-content backdrop */
+  --uip-white:         #FFFFFF; /* canvas / people */
+
+  /* ---- Secondary ---- */
+  --uip-bright-blue:   #CCF2FF;
+  --uip-dark-blue:     #1E6482;
+  --uip-offset-orange: #A32200;
+  --uip-black:         #000000; /* platform-content backdrop / people */
+  --uip-testing-purple:#8B288A; /* testing content ONLY */
+  --uip-offset-grey:   #D9D9D9;
+
+  /* ---- Tertiary ramps ---- */
+  --uip-orange-100: #FCC0C5;  --uip-orange-300: #FA7678;  --uip-orange-500: #FB6B45;  --uip-orange-700: #CE340B;
+  --uip-teal-100:   #A5E2F0;  --uip-teal-300:   #5BCBDE;  --uip-teal-500:   #3CB5C2;  --uip-teal-700:   #15839A;
+  --uip-blue-100:   #A0AAB9;  --uip-blue-300:   #646E78;  --uip-blue-500:   #3C464B;  --uip-blue-700:   #2D373C;
+  --uip-purple-100: #FFCBFF;  --uip-purple-300: #C862C8;  --uip-purple-500: #721472;  --uip-purple-700: #5A005A;
+
+  /* ---- Neutrals ---- */
+  --uip-grey-50:  #F6F6F6;  --uip-grey-300: #B9B9B9;  --uip-grey-400: #9D9D9D;
+  --uip-grey-600: #616161;  --uip-grey-700: #484848;  --uip-grey-800: #343434;
+
+  /* ---- Signature gradient ---- */
+  --uip-gradient-brand: linear-gradient(90deg, #FA4616 0%, #FFFFFF 50%, #0BA2B3 100%);
+
+  /* ---- Type families ---- */
+  --uip-font-headline: 'Poppins', system-ui, sans-serif;   /* Bold (general) / Black (campaign) */
+  --uip-font-subhead:  'Poppins', system-ui, sans-serif;   /* fallback for paid Urbane Rounded */
+  --uip-font-body:     'Inter', system-ui, sans-serif;
+  --uip-font-cta:      'Poppins', system-ui, sans-serif;    /* Semi Bold */
+
+  /* ---- Type tokens ---- */
+  --uip-tracking-headline: -0.045em; /* tracking -45 */
+  --uip-tracking-cta:      -0.025em; /* tracking -25 */
+  --uip-leading-headline:  1.05;     /* tight */
+  --uip-leading-body:      1.4;
+}
+
+/* Ready-to-use text roles for compositions */
+.uip-headline { font-family: var(--uip-font-headline); font-weight: 700; letter-spacing: var(--uip-tracking-headline); line-height: var(--uip-leading-headline); color: var(--uip-white); }
+.uip-headline--campaign { font-weight: 900; text-transform: uppercase; }
+.uip-subhead  { font-family: var(--uip-font-subhead); font-weight: 500; line-height: 1.2; }
+.uip-body     { font-family: var(--uip-font-body); font-weight: 400; line-height: var(--uip-leading-body); }
+.uip-cta      { font-family: var(--uip-font-cta); font-weight: 600; letter-spacing: var(--uip-tracking-cta); }
+
+/* Approved CTA color combos */
+.uip-cta--on-orange { background: var(--uip-orange); color: var(--uip-white); }
+.uip-cta--on-white  { background: var(--uip-white);  color: var(--uip-orange); }
+.uip-cta--on-teal   { background: var(--uip-teal);   color: var(--uip-black); }
