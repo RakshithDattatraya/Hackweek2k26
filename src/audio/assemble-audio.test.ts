@@ -19,6 +19,8 @@ test("VO length drives scene durations and produces aligned vo.wav", () => {
   const audioLen = wavDuration(combinedWav);
   // combined audio is each scene padded to its (content-driven) duration, so it matches total scene time
   expect(Math.abs(audioLen - totalScenes)).toBeLessThan(0.5);
+  // audioDir is resolved to absolute for ffmpeg concat path safety
+  expect(combinedWav.startsWith("/")).toBe(true);
   // durations are now content-driven, not the fixture's fixed values
   expect(planWithTiming.scenes[0].duration).toBeGreaterThanOrEqual(2);
 });

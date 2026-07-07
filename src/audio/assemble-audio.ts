@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import type { VideoPlan } from "../content-director/plan-schema";
 import type { SpeechSynthesizer } from "./tts";
 
@@ -17,6 +17,7 @@ export function synthesizePlanAudio(
   audioDir: string,
   pad = 0.6,
 ): { planWithTiming: VideoPlan; combinedWav: string } {
+  audioDir = resolve(audioDir);
   const paddedFiles: string[] = [];
 
   const scenes = plan.scenes.map((s, i) => {
