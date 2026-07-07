@@ -19,8 +19,8 @@ export function loadBrandTokens(root: string = process.cwd()): BrandTokens {
     teal: p.agenticTeal.hex,
     deepBlue: p.deepBlue.hex,
     white: p.brightWhite.hex,
-    fontHeadline: "Poppins",
-    fontBody: "Inter",
-    logoOrange: "brand/logos/uipath-logo-orange.png",
+    fontHeadline: raw.typography.headline.family,
+    fontBody: raw.typography.body.family,
+    logoOrange: raw.logo.assets.orange.file,
   };
 }
