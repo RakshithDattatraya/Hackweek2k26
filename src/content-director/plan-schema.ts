@@ -38,3 +38,39 @@ export type Scene = z.infer<typeof SceneSchema>;
 export function validatePlan(data: unknown): VideoPlan {
   return VideoPlanSchema.parse(data);
 }
+
+export const SceneMotionSchema = z.object({
+  pushScale: z.number().optional(),
+  pushY: z.number().optional(),
+  ease: z.string().optional(),
+  autoZoom: z.boolean().optional(),
+});
+
+export const SceneV2Schema = z.object({
+  id: z.string().min(1),
+  component: z.string().min(1),
+  props: z.record(z.string(), z.unknown()).default({}),
+  narration: z.string().min(1),
+  duration: z.number().positive().optional(),
+  motion: SceneMotionSchema.optional(),
+});
+
+export const VideoPlanV2Schema = z.object({
+  feature_name: z.string().min(1),
+  value_prop: z.string(),
+  persona: z.string(),
+  when_to_use: z.string(),
+  talking_points: z.array(z.string()).min(1),
+  scenes: z.array(SceneV2Schema).min(1),
+  youtube_metadata: z.object({
+    title: z.string(), description: z.string(),
+    tags: z.array(z.string()), chapters: z.array(z.object({ title: z.string(), start: z.number().nonnegative() })),
+  }),
+});
+
+export type SceneV2 = z.infer<typeof SceneV2Schema>;
+export type VideoPlanV2 = z.infer<typeof VideoPlanV2Schema>;
+
+export function validatePlanV2(data: unknown): VideoPlanV2 {
+  return VideoPlanV2Schema.parse(data);
+}
