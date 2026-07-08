@@ -1,0 +1,18 @@
+{
+  "feature_name": "Feature to Enablement Video Pipeline",
+  "value_prop": "At merge, auto-draft enablement so sales knows what shipped and how to position it.",
+  "persona": "Sales enablement", "when_to_use": "When engineering out-ships sales' ability to keep up.",
+  "talking_points": ["velocity outran enablement", "merge is max context"],
+  "scenes": [
+    { "id": "hook", "html": "<div class='anim' style='font-family:var(--uip-font-head);font-weight:700;font-size:88px;letter-spacing:-0.045em;color:var(--uip-white);line-height:1.05'>Shipping fast isn't the same as <span style='color:var(--uip-orange)'>selling fast.</span></div>",
+      "motionScript": "tl.from(root.querySelector('.anim'),{autoAlpha:0,y:50,duration:0.7,ease:'power3.out'},start+0.2)",
+      "transitionOut": "tl.to(root,{xPercent:-12,autoAlpha:0,duration:0.6,ease:'power2.inOut'},at)", "transitionOverlap": 0.6,
+      "narration": "Engineering has never shipped faster. But shipping fast isn't the same as selling fast." },
+    { "id": "fix", "html": "<div class='anim' style='font-family:var(--uip-font-head);font-weight:700;font-size:84px;letter-spacing:-0.04em;color:var(--uip-white)'>So we draft the enablement <span style='color:var(--uip-teal)'>at merge.</span></div>",
+      "motionScript": "tl.from(root.querySelector('.anim'),{autoAlpha:0,x:80,duration:0.7,ease:'power3.out'},start+0.2)",
+      "transitionOut": "tl.to(root,{scale:1.15,autoAlpha:0,duration:0.6,ease:'power2.in'},at)", "transitionOverlap": 0.6,
+      "narration": "So right after deploy, the pipeline drafts the enablement — a video and a one-pager." },
+    { "id": "cta", "component": "cta", "props": { "headline": "From merged to sellable. Automatically." }, "narration": "From merged to sellable, automatically." }
+  ],
+  "youtube_metadata": { "title": "Enablement Pipeline", "description": "d", "tags": ["uipath"], "chapters": [] }
+}
