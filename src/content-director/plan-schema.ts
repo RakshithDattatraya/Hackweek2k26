@@ -44,6 +44,7 @@ export const SceneMotionSchema = z.object({
   pushY: z.number().optional(),
   ease: z.string().optional(),
   autoZoom: z.boolean().optional(),
+  stagger: z.number().optional(),
 });
 
 export const SceneV2Schema = z.object({

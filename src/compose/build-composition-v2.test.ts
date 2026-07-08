@@ -28,3 +28,23 @@ test("builds index.html with cumulative starts, clips, paused timeline", () => {
   expect(html).toContain("Last");
   expect(existsSync(join(outDir, "meta.json"))).toBe(true);
 });
+
+test("escapes feature_name in the title", () => {
+  const p = { feature_name: 'A <b> & C', value_prop: "", persona: "", when_to_use: "", talking_points: ["x"],
+    scenes: [{ id: "a", component: "statement", props: { headline: "H" }, narration: "n", duration: 3 }],
+    youtube_metadata: { title: "", description: "", tags: [], chapters: [] } } as any;
+  const dir = join(process.cwd(), "out/test-compose-v2-esc");
+  const { indexPath } = buildCompositionV2(p, loadBrandTokens(), dir, {});
+  const html = readFileSync(indexPath, "utf8");
+  expect(html).toContain("<title>A &lt;b&gt; &amp; C</title>");
+});
+
+test("motion.autoZoom override applies zoom push to a non-slack scene", () => {
+  const p = { feature_name: "T", value_prop: "", persona: "", when_to_use: "", talking_points: ["x"],
+    scenes: [{ id: "a", component: "statement", props: { headline: "H" }, narration: "n", duration: 3, motion: { autoZoom: true } }],
+    youtube_metadata: { title: "", description: "", tags: [], chapters: [] } } as any;
+  const dir = join(process.cwd(), "out/test-compose-v2-zoom");
+  const { indexPath } = buildCompositionV2(p, loadBrandTokens(), dir, {});
+  const html = readFileSync(indexPath, "utf8");
+  expect(html).toContain('data-ps="1.14"');
+});

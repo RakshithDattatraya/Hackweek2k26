@@ -3,6 +3,7 @@ import { join } from "node:path";
 import type { VideoPlanV2 } from "../content-director/plan-schema";
 import type { BrandTokens } from "../brand/token-resolver";
 import { renderScene } from "../scenes/registry";
+import { escapeHtml } from "./scene-card";
 
 const PANEL = "#1e2c35", HAIR = "#33434d", MUTED = "#93a0a8", SUB = "#c4ccd2";
 const GLOW = "radial-gradient(1150px 780px at 12% 6%, rgba(250,70,22,.10), transparent 58%),radial-gradient(1050px 720px at 90% 96%, rgba(11,162,179,.13), transparent 58%)";
@@ -20,11 +21,12 @@ export function buildCompositionV2(
     const dur = s.duration ?? 4;
     const start = cursor; cursor += dur;
     const m = s.motion ?? {};
-    const ps = m.pushScale ?? (autoZoomDefault.has(s.component) ? 1.14 : 1.03);
-    const py = m.pushY ?? (autoZoomDefault.has(s.component) ? -32 : 0);
-    const pe = m.ease ?? (autoZoomDefault.has(s.component) ? "power2.inOut" : "none");
+    const wantZoom = m.autoZoom ?? autoZoomDefault.has(s.component);
+    const ps = m.pushScale ?? (wantZoom ? 1.14 : 1.03);
+    const py = m.pushY ?? (wantZoom ? -32 : 0);
+    const pe = m.ease ?? (wantZoom ? "power2.inOut" : "none");
     const cls = "clip scene" + (centered.has(s.component) ? " center" : "");
-    return `    <div class="${cls}" data-start="${start.toFixed(2)}" data-duration="${dur.toFixed(2)}" data-track-index="0" data-stagger="${(m as any).stagger ?? 0.32}" data-ps="${ps}" data-py="${py}" data-pe="${pe}" style="background:${GLOW}, ${t.deepBlue}">
+    return `    <div class="${cls}" data-start="${start.toFixed(2)}" data-duration="${dur.toFixed(2)}" data-track-index="0" data-stagger="${m.stagger ?? 0.32}" data-ps="${ps}" data-py="${py}" data-pe="${pe}" style="background:${GLOW}, ${t.deepBlue}">
       <div class="inner">${renderScene(s, t)}</div>
     </div>`;
   }).join("\n");
@@ -35,7 +37,7 @@ export function buildCompositionV2(
 
   const html = `<!doctype html>
 <html lang="en" data-resolution="landscape"><head><meta charset="UTF-8" />
-<title>${plan.feature_name}</title>
+<title>${escapeHtml(plan.feature_name)}</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
 <style>
