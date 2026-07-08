@@ -54,6 +54,8 @@ export const SceneV2Schema = z.object({
   narration: z.string().min(1),
   duration: z.number().positive().optional(),
   motion: SceneMotionSchema.optional(),
+  transitionOut: z.string().optional(),
+  transitionOverlap: z.number().nonnegative().optional(),
 });
 
 export const VideoPlanV2Schema = z.object({
@@ -83,6 +85,8 @@ export const CustomSceneSchema = z.object({
   motionScript: z.string().optional(),
   narration: z.string().min(1),
   duration: z.number().positive().optional(),
+  transitionOut: z.string().optional(),
+  transitionOverlap: z.number().nonnegative().optional(),
 });
 
 export const VideoPlanV3Schema = z.object({
