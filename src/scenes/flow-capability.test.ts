@@ -10,7 +10,8 @@ test("flow renders nodes with arrows between", () => {
   expect(html).toContain("Ingest");
   expect(html).toContain("Render");
   expect(html).toContain("arrow");
-  expect((html.match(/class="node/g) || []).length).toBe(2);
+  expect((html.match(/class="node /g) || []).length).toBe(2);   // trailing space → only node divs
+  expect(html).toContain('class="node-ic"');                      // icon hook preserved
 });
 
 test("capability renders items with icons", () => {
