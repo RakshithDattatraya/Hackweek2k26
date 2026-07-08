@@ -10,3 +10,11 @@ test("errors/missing/overflow become findings", () => {
   expect(f.length).toBe(3);
   expect(f.every((x) => x.check === "render-check")).toBe(true);
 });
+
+test("clean summary tally lines are not flagged", () => {
+  expect(parseHyperframesIssues("✓ lint passed\n0 error(s), 6 warning(s)")).toEqual([]);
+});
+
+test("a nonzero error tally is still flagged", () => {
+  expect(parseHyperframesIssues("2 error(s), 0 warning(s)").length).toBe(1);
+});

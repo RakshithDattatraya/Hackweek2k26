@@ -8,6 +8,10 @@ export function parseHyperframesIssues(stdout: string): QAFinding[] {
     if (!l) continue;
     // Skip lines that start with ✓ (clean)
     if (l.startsWith("✓")) continue;
+    // Skip summary tallies like "0 error(s), 6 warning(s)" — these are not
+    // findings themselves; only flag them when the tallied count is nonzero.
+    const tally = l.match(/(\d+)\s+error\(s\)/i);
+    if (tally && Number(tally[1]) === 0) continue;
     // Match error indicators
     if (/(^✗|\berror\b|\bmissing\b|\boverflow\b|\bfailed\b)/i.test(l)) {
       findings.push({ check: "render-check", message: l });
