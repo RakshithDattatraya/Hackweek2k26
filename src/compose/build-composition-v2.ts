@@ -1,8 +1,10 @@
 import { writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import type { VideoPlanV2 } from "../content-director/plan-schema";
+import { isCustomScene } from "../content-director/plan-schema";
 import type { BrandTokens } from "../brand/token-resolver";
 import { renderScene } from "../scenes/registry";
+import { renderCustomInner } from "../scenes/custom";
 import { escapeHtml } from "./scene-card";
 
 const PANEL = "#1e2c35", HAIR = "#33434d", MUTED = "#93a0a8", SUB = "#c4ccd2";
@@ -13,24 +15,44 @@ export function buildCompositionV2(
   opts: { audioRelPath?: string; captionHtml?: string } = {},
 ): { indexPath: string; totalDuration: number } {
   mkdirSync(join(outDir, "audio"), { recursive: true });
-  const centered = new Set(["intro", "cta", "bigstat"]);
-  const autoZoomDefault = new Set(["slack"]);
 
+  const sceneCss: string[] = [];
+  const motionSplices: string[] = [];
   let cursor = 0;
-  const clips = plan.scenes.map((s) => {
+  const clips = plan.scenes.map((s: any) => {
     const dur = s.duration ?? 4;
     const start = cursor; cursor += dur;
-    const m = s.motion ?? {};
-    const wantZoom = m.autoZoom ?? autoZoomDefault.has(s.component);
-    const ps = m.pushScale ?? (wantZoom ? 1.14 : 1.03);
-    const py = m.pushY ?? (wantZoom ? -32 : 0);
-    const pe = m.ease ?? (wantZoom ? "power2.inOut" : "none");
-    const cls = "clip scene" + (centered.has(s.component) ? " center" : "");
-    return `    <div class="${cls}" data-start="${start.toFixed(2)}" data-duration="${dur.toFixed(2)}" data-track-index="0" data-stagger="${m.stagger ?? 0.32}" data-ps="${ps}" data-py="${py}" data-pe="${pe}" style="background:${GLOW}, ${t.deepBlue}">
-      <div class="inner">${renderScene(s, t)}</div>
+    const sid = s.id;
+    const scopeSel = `[data-sid="${sid}"]`;
+    let inner: string;
+    let center = false;
+    let ps = 1.03, py = 0, pe = "none", stg = 0.32;
+    if (isCustomScene(s)) {
+      const r = renderCustomInner(s, scopeSel);
+      inner = r.html;
+      if (r.css) sceneCss.push(r.css);
+      if (s.motionScript) motionSplices.push(
+        `      (function(tl, root, start){ ${s.motionScript} })(tl, document.querySelector('${scopeSel}'), ${start.toFixed(2)});`);
+      const m = s.motion ?? {};
+      ps = m.pushScale ?? 1.03; py = m.pushY ?? 0; pe = m.ease ?? "none"; stg = m.stagger ?? 0.32;
+    } else {
+      const m = s.motion ?? {};
+      const wantZoom = m.autoZoom ?? (s.component === "slack");
+      ps = m.pushScale ?? (wantZoom ? 1.14 : 1.03);
+      py = m.pushY ?? (wantZoom ? -32 : 0);
+      pe = m.ease ?? (wantZoom ? "power2.inOut" : "none");
+      stg = m.stagger ?? 0.32;
+      center = ["intro", "cta", "bigstat"].includes(s.component);
+      inner = renderScene(s, t);
+    }
+    const cls = "clip scene" + (center ? " center" : "");
+    return `    <div class="${cls}" data-sid="${sid}" data-start="${start.toFixed(2)}" data-duration="${dur.toFixed(2)}" data-track-index="0" data-stagger="${stg}" data-ps="${ps}" data-py="${py}" data-pe="${pe}" style="background:${GLOW}, ${t.deepBlue}">
+      <div class="inner">${inner}</div>
     </div>`;
   }).join("\n");
   const totalDuration = cursor;
+
+  const tokenVars = `:root{--uip-orange:${t.orange};--uip-teal:${t.teal};--uip-deep-blue:${t.deepBlue};--uip-white:${t.white};--uip-font-head:'${t.fontHeadline}';--uip-font-body:'${t.fontBody}';}`;
 
   const audioEl = opts.audioRelPath
     ? `    <audio id="vo" src="${opts.audioRelPath}" data-start="0" data-duration="${totalDuration.toFixed(2)}" data-track-index="1"></audio>` : "";
@@ -41,6 +63,8 @@ export function buildCompositionV2(
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
 <style>
+${tokenVars}
+${sceneCss.join("\n")}
   html,body{margin:0;padding:0;width:1920px;height:1080px;overflow:hidden;background:${t.deepBlue};font-family:'Inter',sans-serif;color:${t.white};-webkit-font-smoothing:antialiased;}
   #master-root{width:1920px;height:1080px;position:relative;}
   .scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
@@ -117,6 +141,8 @@ ${audioEl}
       tl.to(cap, { autoAlpha: 0, duration: 0.2, ease: 'power1.in' }, e + 0.18);
       cap.querySelectorAll('.capw').forEach((w) => { tl.to(w, { color: '#ffffff', duration: 0.12 }, parseFloat(w.dataset.t)); });
     });
+    // custom-scene authored motion (spliced; determinism enforced by QA lint)
+${motionSplices.join("\n")}
     window.__timelines["feature-video"] = tl;
   </script>
 </body></html>`;
