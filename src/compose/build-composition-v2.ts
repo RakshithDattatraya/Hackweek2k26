@@ -19,6 +19,7 @@ export function buildCompositionV2(
   const sceneCss: string[] = [];
   const motionSplices: string[] = [];
   const transitionSplices: string[] = [];
+  const transitionInSplices: string[] = [];
 
   // Precompute rounded cumulative boundaries to eliminate rounding drift
   const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -60,6 +61,11 @@ export function buildCompositionV2(
     if (s.transitionOut) {
       transitionSplices.push(
         `      (function(tl, root, at){ ${s.transitionOut} })(tl, document.querySelector('[data-sid="${sid}"]'), ${(start + dur).toFixed(2)});`);
+    }
+    const prevOverlap = i > 0 ? Math.max(0, (plan.scenes[i - 1] as any).transitionOverlap ?? 0) : 0;
+    if (prevOverlap > 0) {
+      transitionInSplices.push(
+        `      tl.from(document.querySelector('[data-sid="${sid}"]'), { autoAlpha: 0, duration: ${prevOverlap.toFixed(2)}, ease: 'power1.inOut' }, ${start.toFixed(2)});`);
     }
     const cls = "clip scene" + (center ? " center" : "");
     return `    <div class="${cls}" data-sid="${sid}" data-start="${start.toFixed(2)}" data-duration="${winDur.toFixed(2)}" data-track-index="${track}" data-stagger="${stg}" data-ps="${ps}" data-py="${py}" data-pe="${pe}"${ownMotion ? ' data-own-motion="1"' : ''} style="z-index:${i};background:${GLOW}, ${t.deepBlue}">
@@ -163,6 +169,8 @@ ${audioEl}
 ${motionSplices.join("\n")}
     // authored seam transitions (outgoing scene animates out during the overlap)
 ${transitionSplices.join("\n")}
+    // incoming scenes fade their root in over the previous scene's overlap (reveals the outgoing transitionOut → real crossfade)
+${transitionInSplices.join("\n")}
     window.__timelines["feature-video"] = tl;
   </script>
 </body></html>`;

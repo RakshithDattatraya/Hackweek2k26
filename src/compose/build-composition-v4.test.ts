@@ -31,3 +31,19 @@ test("transitions: overlap tail, alternating tracks, z-index, splice, caption ba
   // caption safe-band scrim present
   expect(html).toContain("capscrim");
 });
+
+test("incoming scene fades its root in over the previous overlap (visible crossfade)", () => {
+  const p = { feature_name: "T", value_prop: "", persona: "", when_to_use: "", talking_points: ["x"],
+    scenes: [
+      { id: "a", html: "<h1>A</h1>", narration: "n", duration: 4, transitionOut: "tl.to(root,{xPercent:-100},at)", transitionOverlap: 0.6 },
+      { id: "b", html: "<h1>B</h1>", narration: "n", duration: 3 },
+    ],
+    youtube_metadata: { title: "", description: "", tags: [], chapters: [] } } as any;
+  const dir = join(process.cwd(), "out/test-compose-v4-in");
+  const { indexPath } = buildCompositionV2(p, loadBrandTokens(), dir, {});
+  const html = readFileSync(indexPath, "utf8");
+  // scene b (start 4.00) fades its root in over a's 0.6s overlap
+  expect(html).toMatch(/from\(document\.querySelector\('\[data-sid="b"\]'\), \{ autoAlpha: 0, duration: 0\.60[^}]*\}, 4\.00\)/);
+  // scene a (first, no preceding overlap) gets NO incoming fade
+  expect(html).not.toContain(`[data-sid="a"]'), { autoAlpha: 0`);
+});
