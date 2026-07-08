@@ -24,3 +24,13 @@ test("v3 build: token vars, custom scene, scoped css, motion splice, component s
   expect(html).toContain("(function(tl, root, start)");             // motion splice wrapper
   expect(html).toContain("Bye");                                    // component scene still works
 });
+
+test("v3 build: custom scene with motionScript gets data-own-motion and generic .anim stagger is guarded", () => {
+  if (existsSync(outDir)) rmSync(outDir, { recursive: true });
+  const { indexPath } = buildCompositionV2(plan, loadBrandTokens(), outDir, {});
+  const html = readFileSync(indexPath, "utf8");
+  const heroDivMatch = html.match(/<div class="[^"]*" data-sid="hero"[^>]*>/);
+  expect(heroDivMatch).not.toBeNull();
+  expect(heroDivMatch![0]).toContain('data-own-motion="1"');
+  expect(html).toContain("!scene.dataset.ownMotion");
+});

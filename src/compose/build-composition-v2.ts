@@ -27,10 +27,12 @@ export function buildCompositionV2(
     let inner: string;
     let center = false;
     let ps = 1.03, py = 0, pe = "none", stg = 0.32;
+    let ownMotion = false;
     if (isCustomScene(s)) {
       const r = renderCustomInner(s, scopeSel);
       inner = r.html;
       if (r.css) sceneCss.push(r.css);
+      ownMotion = Boolean(s.motionScript);
       if (s.motionScript) motionSplices.push(
         `      (function(tl, root, start){ ${s.motionScript} })(tl, document.querySelector('${scopeSel}'), ${start.toFixed(2)});`);
       const m = s.motion ?? {};
@@ -46,7 +48,7 @@ export function buildCompositionV2(
       inner = renderScene(s, t);
     }
     const cls = "clip scene" + (center ? " center" : "");
-    return `    <div class="${cls}" data-sid="${sid}" data-start="${start.toFixed(2)}" data-duration="${dur.toFixed(2)}" data-track-index="0" data-stagger="${stg}" data-ps="${ps}" data-py="${py}" data-pe="${pe}" style="background:${GLOW}, ${t.deepBlue}">
+    return `    <div class="${cls}" data-sid="${sid}" data-start="${start.toFixed(2)}" data-duration="${dur.toFixed(2)}" data-track-index="0" data-stagger="${stg}" data-ps="${ps}" data-py="${py}" data-pe="${pe}"${ownMotion ? ' data-own-motion="1"' : ''} style="background:${GLOW}, ${t.deepBlue}">
       <div class="inner">${inner}</div>
     </div>`;
   }).join("\n");
@@ -133,7 +135,7 @@ ${audioEl}
       const inner = scene.querySelector('.inner');
       tl.fromTo(inner, { scale: 1, y: 0 }, { scale: parseFloat(scene.dataset.ps), y: parseFloat(scene.dataset.py), duration: dur, ease: scene.dataset.pe || 'none' }, start);
       const kids = scene.querySelectorAll('.anim');
-      if (kids.length) tl.from(kids, { autoAlpha: 0, y: 44, duration: 0.6, stagger: stagger, ease: 'back.out(1.6)' }, start + 0.28);
+      if (kids.length && !scene.dataset.ownMotion) tl.from(kids, { autoAlpha: 0, y: 44, duration: 0.6, stagger: stagger, ease: 'back.out(1.6)' }, start + 0.28);
     });
     document.querySelectorAll('.cap').forEach((cap) => {
       const s = parseFloat(cap.dataset.s), e = parseFloat(cap.dataset.e);

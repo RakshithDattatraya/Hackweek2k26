@@ -17,3 +17,9 @@ test("v3 accepts a custom scene and a component scene together", () => {
 test("custom scene requires html", () => {
   expect(() => validatePlanV3({ ...base, scenes: [{ id: "c1", narration: "n" }] })).toThrow();
 });
+
+test("custom scene with invalid id format is rejected", () => {
+  expect(() => validatePlanV3({ ...base, scenes: [
+    { id: "bad id!", html: "<h1>Hi</h1>", narration: "n" },
+  ] })).toThrow();
+});

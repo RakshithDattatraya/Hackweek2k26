@@ -48,7 +48,7 @@ export const SceneMotionSchema = z.object({
 });
 
 export const SceneV2Schema = z.object({
-  id: z.string().min(1),
+  id: z.string().min(1).regex(/^[a-zA-Z0-9_-]+$/, "id must be alphanumeric, underscore, or hyphen"),
   component: z.string().min(1),
   props: z.record(z.string(), z.unknown()).default({}),
   narration: z.string().min(1),
@@ -77,7 +77,7 @@ export function validatePlanV2(data: unknown): VideoPlanV2 {
 }
 
 export const CustomSceneSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().min(1).regex(/^[a-zA-Z0-9_-]+$/, "id must be alphanumeric, underscore, or hyphen"),
   html: z.string().min(1),
   css: z.string().optional(),
   motionScript: z.string().optional(),
