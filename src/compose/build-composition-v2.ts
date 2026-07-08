@@ -18,6 +18,7 @@ export function buildCompositionV2(
 
   const sceneCss: string[] = [];
   const motionSplices: string[] = [];
+  const transitionSplices: string[] = [];
 
   // Precompute rounded cumulative boundaries to eliminate rounding drift
   const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -52,8 +53,16 @@ export function buildCompositionV2(
       center = ["intro", "cta", "bigstat"].includes(s.component);
       inner = renderScene(s, t);
     }
+    const isLast = i === plan.scenes.length - 1;
+    const overlap = isLast ? 0 : Math.max(0, s.transitionOverlap ?? 0);
+    const winDur = dur + overlap;
+    const track = i % 2;
+    if (s.transitionOut) {
+      transitionSplices.push(
+        `      (function(tl, root, at){ ${s.transitionOut} })(tl, document.querySelector('[data-sid="${sid}"]'), ${(start + dur).toFixed(2)});`);
+    }
     const cls = "clip scene" + (center ? " center" : "");
-    return `    <div class="${cls}" data-sid="${sid}" data-start="${start.toFixed(2)}" data-duration="${dur.toFixed(2)}" data-track-index="0" data-stagger="${stg}" data-ps="${ps}" data-py="${py}" data-pe="${pe}"${ownMotion ? ' data-own-motion="1"' : ''} style="background:${GLOW}, ${t.deepBlue}">
+    return `    <div class="${cls}" data-sid="${sid}" data-start="${start.toFixed(2)}" data-duration="${winDur.toFixed(2)}" data-track-index="${track}" data-stagger="${stg}" data-ps="${ps}" data-py="${py}" data-pe="${pe}"${ownMotion ? ' data-own-motion="1"' : ''} style="z-index:${i};background:${GLOW}, ${t.deepBlue}">
       <div class="inner">${inner}</div>
     </div>`;
   }).join("\n");
@@ -62,7 +71,7 @@ export function buildCompositionV2(
   const tokenVars = `:root{--uip-orange:${t.orange};--uip-teal:${t.teal};--uip-deep-blue:${t.deepBlue};--uip-white:${t.white};--uip-font-head:'${t.fontHeadline}';--uip-font-body:'${t.fontBody}';}`;
 
   const audioEl = opts.audioRelPath
-    ? `    <audio id="vo" src="${opts.audioRelPath}" data-start="0" data-duration="${totalDuration.toFixed(2)}" data-track-index="1"></audio>` : "";
+    ? `    <audio id="vo" src="${opts.audioRelPath}" data-start="0" data-duration="${totalDuration.toFixed(2)}" data-track-index="2"></audio>` : "";
 
   const html = `<!doctype html>
 <html lang="en" data-resolution="landscape"><head><meta charset="UTF-8" />
@@ -74,7 +83,7 @@ ${tokenVars}
 ${sceneCss.join("\n")}
   html,body{margin:0;padding:0;width:1920px;height:1080px;overflow:hidden;background:${t.deepBlue};font-family:'Inter',sans-serif;color:${t.white};-webkit-font-smoothing:antialiased;}
   #master-root{width:1920px;height:1080px;position:relative;}
-  .scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+  .scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding-bottom:180px;box-sizing:border-box;}
   .inner{width:1520px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;transform-origin:center center;}
   .scene.center .inner{align-items:center;text-align:center;}
   .eyebrow{font-family:'Inter';font-weight:700;text-transform:uppercase;letter-spacing:.2em;font-size:24px;margin-bottom:28px;display:flex;align-items:center;gap:14px;}
@@ -86,7 +95,8 @@ ${sceneCss.join("\n")}
   .introtag{font-family:'Poppins';font-weight:600;font-size:46px;letter-spacing:-0.02em;color:${SUB};margin-top:34px;}
   .bigstat-num{font-family:'Poppins';font-weight:900;font-size:220px;line-height:1;letter-spacing:-0.04em;}
   .bigstat-unit{font-size:120px;margin-left:10px;}
-  .footer{position:absolute;left:64px;bottom:48px;font-family:'Inter';font-weight:600;font-size:22px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.28);display:flex;gap:12px;}
+  .footer{position:absolute;left:64px;bottom:48px;font-family:'Inter';font-weight:600;font-size:22px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.28);display:flex;gap:12px;z-index:45;}
+  .capscrim{position:absolute;left:0;right:0;bottom:0;height:220px;background:linear-gradient(transparent, rgba(0,0,0,.6));z-index:40;pointer-events:none;}
   .footer b{color:rgba(255,255,255,.5);font-weight:700;}
   .slackwin{width:1240px;height:660px;display:flex;border-radius:20px;overflow:hidden;background:#fff;box-shadow:0 50px 110px rgba(0,0,0,.55);border:1px solid rgba(0,0,0,.1);}
   .slack-sb{width:290px;background:#3F0E40;color:#fff;padding:22px 0;flex:0 0 auto;}
@@ -120,12 +130,13 @@ ${sceneCss.join("\n")}
   .capic{flex:0 0 76px;width:76px;height:76px;border-radius:16px;background:${PANEL};border:1px solid ${HAIR};display:flex;align-items:center;justify-content:center;font-size:38px;}
   .caps b{font-family:'Poppins';font-weight:600;display:block;}.capd{display:block;font-size:27px;color:#aab4bb;margin-top:5px;}
   .ctacard{background:#fff;border-radius:26px;padding:52px 68px;box-shadow:0 34px 90px rgba(0,0,0,.45);}.ctacard .logo{height:92px;align-self:center;}
-  .cap{position:absolute;left:50%;bottom:70px;transform:translateX(-50%);width:1200px;text-align:center;font-family:'Inter';font-weight:600;font-size:37px;line-height:1.3;text-shadow:0 2px 22px rgba(0,0,0,.75);pointer-events:none;z-index:50;}
+  .cap{position:absolute;left:50%;bottom:56px;transform:translateX(-50%);width:1200px;text-align:center;font-family:'Inter';font-weight:600;font-size:37px;line-height:1.3;text-shadow:0 2px 22px rgba(0,0,0,.75);pointer-events:none;z-index:50;}
   .capw{color:rgba(255,255,255,.4);}
 </style></head>
 <body>
   <div id="master-root" data-composition-id="feature-video" data-start="0" data-width="1920" data-height="1080">
 ${clips}
+    <div class="capscrim"></div>
 ${opts.captionHtml ?? ""}
     <div class="footer"><b>UiPath</b> · Enablement</div>
 ${audioEl}
@@ -150,6 +161,8 @@ ${audioEl}
     });
     // custom-scene authored motion (spliced; determinism enforced by QA lint)
 ${motionSplices.join("\n")}
+    // authored seam transitions (outgoing scene animates out during the overlap)
+${transitionSplices.join("\n")}
     window.__timelines["feature-video"] = tl;
   </script>
 </body></html>`;
