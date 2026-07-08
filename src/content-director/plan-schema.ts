@@ -75,3 +75,31 @@ export type VideoPlanV2 = z.infer<typeof VideoPlanV2Schema>;
 export function validatePlanV2(data: unknown): VideoPlanV2 {
   return VideoPlanV2Schema.parse(data);
 }
+
+export const CustomSceneSchema = z.object({
+  id: z.string().min(1),
+  html: z.string().min(1),
+  css: z.string().optional(),
+  motionScript: z.string().optional(),
+  narration: z.string().min(1),
+  duration: z.number().positive().optional(),
+});
+
+export const VideoPlanV3Schema = z.object({
+  feature_name: z.string().min(1), value_prop: z.string(), persona: z.string(),
+  when_to_use: z.string(), talking_points: z.array(z.string()).min(1),
+  scenes: z.array(z.union([SceneV2Schema, CustomSceneSchema])).min(1),
+  youtube_metadata: z.object({ title: z.string(), description: z.string(),
+    tags: z.array(z.string()), chapters: z.array(z.object({ title: z.string(), start: z.number().nonnegative() })) }),
+});
+
+export type CustomScene = z.infer<typeof CustomSceneSchema>;
+export type VideoPlanV3 = z.infer<typeof VideoPlanV3Schema>;
+
+export function isCustomScene(s: unknown): s is CustomScene {
+  return typeof s === "object" && s !== null && "html" in s;
+}
+
+export function validatePlanV3(data: unknown): VideoPlanV3 {
+  return VideoPlanV3Schema.parse(data);
+}
