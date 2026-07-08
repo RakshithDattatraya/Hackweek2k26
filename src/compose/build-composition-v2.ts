@@ -18,10 +18,15 @@ export function buildCompositionV2(
 
   const sceneCss: string[] = [];
   const motionSplices: string[] = [];
-  let cursor = 0;
-  const clips = plan.scenes.map((s: any) => {
-    const dur = s.duration ?? 4;
-    const start = cursor; cursor += dur;
+
+  // Precompute rounded cumulative boundaries to eliminate rounding drift
+  const r2 = (n: number) => Math.round(n * 100) / 100;
+  const bounds: number[] = [0];
+  for (const sc of plan.scenes as any[]) bounds.push(bounds[bounds.length - 1] + (sc.duration ?? 4));
+
+  const clips = plan.scenes.map((s: any, i: number) => {
+    const start = r2(bounds[i]);
+    const dur = r2(bounds[i + 1]) - start;  // exact boundary difference; next clip's start === this start+dur
     const sid = s.id;
     const scopeSel = `[data-sid="${sid}"]`;
     let inner: string;
@@ -52,7 +57,7 @@ export function buildCompositionV2(
       <div class="inner">${inner}</div>
     </div>`;
   }).join("\n");
-  const totalDuration = cursor;
+  const totalDuration = r2(bounds[bounds.length - 1]);
 
   const tokenVars = `:root{--uip-orange:${t.orange};--uip-teal:${t.teal};--uip-deep-blue:${t.deepBlue};--uip-white:${t.white};--uip-font-head:'${t.fontHeadline}';--uip-font-body:'${t.fontBody}';}`;
 
