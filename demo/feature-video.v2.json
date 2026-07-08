@@ -1,0 +1,124 @@
+{
+  "feature_name": "Feature to Enablement Video Pipeline",
+  "value_prop": "At merge, auto-draft a premium enablement video + one-pager so sales knows what shipped, where it fits, and how to position it.",
+  "persona": "Sales / Sales Engineering (internal enablement)",
+  "when_to_use": "When engineering velocity is outpacing sales' ability to learn, position, and place newly shipped features.",
+  "talking_points": [
+    "Engineering ships faster than sales can learn — the gap is enablement, not effort",
+    "At merge, the moment of maximum context, auto-generate the enablement",
+    "Sales instantly knows what shipped, where it fits, and the right-fit customer",
+    "Human-in-the-loop: merge triggers capture, not publish"
+  ],
+  "scenes": [
+    {
+      "id": "intro",
+      "component": "intro",
+      "props": { "tagline": "Enablement. Automatically." },
+      "narration": "UiPath enablement."
+    },
+    {
+      "id": "hook",
+      "component": "slack",
+      "props": {
+        "channel": "sales-help",
+        "members": 18,
+        "messages": [
+          { "color": "#E01E5A", "initials": "PS", "name": "Priya Sharma", "time": "9:38 AM", "text": "third new feature this sprint 😳 I genuinely can't keep up" },
+          { "color": "#2EB67D", "initials": "MA", "name": "Marco Alvarez", "time": "9:39 AM", "text": "a customer asked which one fits their use case and I <b>didn't know</b>" },
+          { "color": "#36C5F0", "initials": "DV", "name": "Devansh Verma", "time": "9:41 AM", "text": "it's not that eng isn't shipping — it's that I can't explain what shipped fast enough" },
+          { "color": "#ECB22E", "initials": "LT", "name": "Lena Torres", "time": "9:42 AM", "text": "we're pitching last quarter's product while eng is three sprints ahead" }
+        ]
+      },
+      "narration": "Engineering has never shipped faster. But over in sales, that same speed has a cost."
+    },
+    {
+      "id": "gap",
+      "component": "gap",
+      "props": {
+        "eyebrow": "The real gap",
+        "headline": "Shipping fast isn't the same as selling fast.",
+        "left": { "icon": "🚀", "title": "Engineering", "sub": "Builder mindset. Ships features constantly, at high velocity." },
+        "right": { "icon": "🧭", "title": "Sales", "sub": "Can't learn them fast enough to position or place them." },
+        "chasmLabel": "no bridge from merged to sellable"
+      },
+      "narration": "It isn't that engineers don't care. It's that there's no bridge from merged to sellable."
+    },
+    {
+      "id": "insight",
+      "component": "statement",
+      "props": {
+        "eyebrow": "The insight",
+        "headline": "You're shipping faster than you can explain it.",
+        "highlight": "explain",
+        "sub": "Velocity outran enablement. The fix is a bridge — not a brake."
+      },
+      "narration": "The problem isn't shipping too fast. It's shipping faster than anyone can explain what was built."
+    },
+    {
+      "id": "solution",
+      "component": "statement",
+      "props": {
+        "eyebrow": "The bridge",
+        "headline": "Feature to Enablement Video Pipeline.",
+        "highlight": "Enablement",
+        "sub": "At merge — the moment of maximum context — auto-draft a premium video and a one-pager."
+      },
+      "narration": "So we built the bridge. When a feature merges, at the moment of maximum context, it auto-drafts a premium enablement video and a one-pager."
+    },
+    {
+      "id": "how",
+      "component": "flow",
+      "props": {
+        "eyebrow": "How it works",
+        "nodes": [
+          { "icon": "🔀", "label": "Merge" },
+          { "icon": "🎬", "label": "Content Director" },
+          { "icon": "🎨", "label": "Brand" },
+          { "icon": "🎙️", "label": "Voiceover" },
+          { "icon": "✅", "label": "Draft" }
+        ]
+      },
+      "narration": "It reads the context of what changed, writes the story, skins it in UiPath brand, narrates it, and drafts the video — automatically."
+    },
+    {
+      "id": "value",
+      "component": "capability",
+      "props": {
+        "eyebrow": "What sales gets",
+        "items": [
+          { "icon": "🧠", "title": "Knows what shipped", "desc": "every merged feature, explained in plain language" },
+          { "icon": "🎯", "title": "Knows where it fits", "desc": "the customer problem it actually solves" },
+          { "icon": "🗣️", "title": "Knows how to position it", "desc": "the talk track, and when to bring it up" },
+          { "icon": "🧭", "title": "Knows the right-fit customer", "desc": "who to pitch it to — and who not to" }
+        ]
+      },
+      "narration": "So sales instantly knows what shipped, where it fits, how to position it, and which customer it's the right fit for."
+    },
+    {
+      "id": "hitl",
+      "component": "flow",
+      "props": {
+        "eyebrow": "Human in the loop",
+        "nodes": [
+          { "icon": "🔀", "label": "Merge" },
+          { "icon": "🎬", "label": "Draft" },
+          { "icon": "👤", "label": "Human review" },
+          { "icon": "🚀", "label": "Publish" }
+        ]
+      },
+      "narration": "And it never ships on its own. A merge triggers capture, not publish — every video is a draft a person signs off before it reaches a customer."
+    },
+    {
+      "id": "cta",
+      "component": "cta",
+      "props": { "headline": "From merged to sellable. Automatically." },
+      "narration": "From merged to sellable — automatically, and on brand."
+    }
+  ],
+  "youtube_metadata": {
+    "title": "Feature → Enablement Video Pipeline — Internal Enablement",
+    "description": "When engineering out-ships sales' ability to keep up, this pipeline auto-drafts an enablement video + one-pager at merge so sales knows what shipped, where it fits, and how to position it.",
+    "tags": ["uipath", "enablement", "sales", "pipeline"],
+    "chapters": []
+  }
+}
