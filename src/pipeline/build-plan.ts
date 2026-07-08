@@ -1,0 +1,66 @@
+import { mkdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { execFileSync } from "node:child_process";
+import { validatePlanV2 } from "../content-director/plan-schema";
+import { validateScenePlan } from "../scenes/registry";
+import { loadBrandTokens } from "../brand/token-resolver";
+import { synthesizePlanAudio } from "../audio/assemble-audio";
+import { saySynthesizer, type SpeechSynthesizer } from "../audio/tts";
+import { buildCompositionV2 } from "../compose/build-composition-v2";
+import { render } from "../render/render";
+
+export function pickSynthesizer(): SpeechSynthesizer {
+  try {
+    const voices = execFileSync("say", ["-v", "?"]).toString();
+    if (voices.includes("Ava (Premium)")) {
+      return {
+        synthesize(text, outWavPath) {
+          const aiff = outWavPath.replace(/\.wav$/, ".aiff");
+          execFileSync("say", ["-v", "Ava (Premium)", "-o", aiff, text]);
+          execFileSync("ffmpeg", ["-y", "-i", aiff, "-ar", "44100", "-ac", "2", outWavPath], { stdio: "ignore" });
+        },
+      };
+    }
+  } catch { /* fall through */ }
+  return saySynthesizer;
+}
+
+type Word = { text: string; start: number; end: number };
+
+export async function buildFromPlan(planPath: string, outDir: string): Promise<string> {
+  const plan = validatePlanV2(JSON.parse(readFileSync(planPath, "utf8")));
+  validateScenePlan(plan);
+  const tokens = loadBrandTokens();
+  mkdirSync(join(outDir, "audio"), { recursive: true });
+  mkdirSync(join(outDir, "renders"), { recursive: true });
+  mkdirSync(join(outDir, "assets"), { recursive: true });
+  execFileSync("cp", [join(process.cwd(), "brand/logos/uipath-logo-orange.png"), join(outDir, "assets/uipath-logo-orange.png")]);
+
+  const { planWithTiming } = synthesizePlanAudio(plan as any, pickSynthesizer(), join(outDir, "audio"), 0.9);
+  execFileSync("ffmpeg", ["-y", "-i", join(outDir, "audio/vo.wav"), "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-ar", "48000", "-ac", "2", join(outDir, "audio/vo-norm.wav")], { stdio: "ignore" });
+
+  // captions (optional — skip if transcribe unavailable)
+  let captionHtml = "";
+  try {
+    const nodeBin = process.env.HYPERFRAMES_NODE_BIN;
+    const hfEnv = nodeBin ? { ...process.env, PATH: `${nodeBin}:${process.env.PATH}` } : process.env;
+    execFileSync("npx", ["-y", "hyperframes@latest", "transcribe", "audio/vo-norm.wav", "--json", "--optional"], { cwd: outDir, env: hfEnv, stdio: "ignore" });
+    const words = JSON.parse(readFileSync(join(outDir, "audio/transcript.json"), "utf8")) as Word[];
+    const esc = (s: string) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]!));
+    const cues: { words: Word[]; start: number; end: number }[] = [];
+    let cur: Word[] = [], len = 0;
+    const flush = () => { if (cur.length) { cues.push({ words: cur, start: cur[0].start, end: cur[cur.length - 1].end }); cur = []; } };
+    for (const w of words) { cur.push(w); len += w.text.length + 1; if (len >= 42 || cur.length >= 8 || /[.?!]$/.test(w.text.trim())) { flush(); len = 0; } }
+    flush();
+    captionHtml = cues.map((c) => `    <div class="cap" data-s="${c.start}" data-e="${c.end}">${c.words.map((w) => `<span class="capw" data-t="${w.start}">${esc(w.text)}</span>`).join(" ")}</div>`).join("\n");
+  } catch { captionHtml = ""; }
+
+  buildCompositionV2(planWithTiming as any, tokens, outDir, { audioRelPath: "audio/vo-norm.wav", captionHtml });
+  render(outDir, "renders/video.mp4");
+  return join(outDir, "renders", "video.mp4");
+}
+
+if (import.meta.main) {
+  const planPath = process.argv[2] || "fixtures/sample-plan.v2.json";
+  buildFromPlan(planPath, join(process.cwd(), "out/latest-v2")).then((p) => console.log("Rendered:", p));
+}

@@ -1,0 +1,16 @@
+{
+  "feature_name": "Agentic Document Understanding",
+  "value_prop": "Extract data from any document with self-correcting agents.",
+  "persona": "Account Executive", "when_to_use": "When extraction keeps breaking.",
+  "talking_points": ["Handles unseen layouts", "Self-corrects low-confidence fields"],
+  "scenes": [
+    { "id": "s1", "component": "intro", "props": { "tagline": "Enablement. Automatically." }, "narration": "UiPath enablement." },
+    { "id": "s2", "component": "slack", "props": { "channel": "sales-help", "members": 12, "messages": [
+      { "color": "#E01E5A", "initials": "PS", "name": "Priya", "time": "9:41 AM", "text": "we shipped a new feature?? 😅" },
+      { "color": "#2EB67D", "initials": "MA", "name": "Marco", "time": "9:42 AM", "text": "a customer asked and I had <b>nothing</b>" }
+    ] }, "narration": "Engineering ships something great, and the questions pour in." },
+    { "id": "s3", "component": "statement", "props": { "eyebrow": "The insight", "headline": "Merge is maximum context.", "highlight": "maximum context", "sub": "Capture it before it evaporates." }, "narration": "Merge is the moment of maximum context." },
+    { "id": "s4", "component": "cta", "props": { "headline": "From merge to enablement." }, "narration": "From merge to enablement, automatically." }
+  ],
+  "youtube_metadata": { "title": "ADU Enablement", "description": "d", "tags": ["uipath"], "chapters": [] }
+}
