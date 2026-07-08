@@ -17,5 +17,15 @@ test("Math.random is flagged with scene id", () => {
 });
 
 test("Date.now and fetch are flagged", () => {
-  expect(lintPlan(mk("const t=Date.now(); fetch('/x')")).length).toBeGreaterThanOrEqual(1);
+  expect(lintPlan(mk("const t=Date.now(); fetch('/x')")).length).toBe(2);
+});
+
+test("component scenes and scenes without motionScript are skipped", () => {
+  const plan = { feature_name: "T", value_prop: "", persona: "", when_to_use: "", talking_points: ["x"],
+    scenes: [
+      { id: "s1", component: "cta", props: { headline: "x" }, narration: "n" },
+      { id: "c2", html: "<h1>x</h1>", narration: "n" }
+    ],
+    youtube_metadata: { title: "", description: "", tags: [], chapters: [] } } as any;
+  expect(lintPlan(plan)).toEqual([]);
 });
