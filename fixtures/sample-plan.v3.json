@@ -1,0 +1,16 @@
+{
+  "feature_name": "Feature to Enablement Video Pipeline",
+  "value_prop": "At merge, auto-draft enablement so sales knows what shipped and how to position it.",
+  "persona": "Sales enablement", "when_to_use": "When engineering out-ships sales' ability to keep up.",
+  "talking_points": ["velocity outran enablement", "merge is max context"],
+  "scenes": [
+    { "id": "hook", "html": "<div class='anim' style='font-family:var(--uip-font-head);font-weight:700;font-size:92px;letter-spacing:-0.04em;line-height:1.05'>Shipping fast isn't the same as <span style='color:var(--uip-orange)'>selling fast.</span></div>",
+      "css": "", "motionScript": "tl.from(root.querySelector('.anim'),{autoAlpha:0,y:50,duration:0.7,ease:'power3.out'},start+0.2)",
+      "narration": "Engineering has never shipped faster. But shipping fast isn't the same as selling fast." },
+    { "id": "build", "html": "<div style='display:flex;gap:28px'><div class='step' style='padding:28px 34px;border:2px solid var(--uip-teal);border-radius:16px;font-family:var(--uip-font-head);font-size:34px'>Merge</div><div class='step' style='padding:28px 34px;border:2px solid var(--uip-teal);border-radius:16px;font-family:var(--uip-font-head);font-size:34px'>Draft</div><div class='step' style='padding:28px 34px;border:2px solid var(--uip-orange);border-radius:16px;font-family:var(--uip-font-head);font-size:34px'>Human review</div></div>",
+      "motionScript": "tl.from(root.querySelectorAll('.step'),{autoAlpha:0,scale:0.8,duration:0.5,stagger:0.35,ease:'back.out(1.6)'},start+0.3)",
+      "narration": "At merge, the pipeline drafts the enablement — and a human always signs off before it ships." },
+    { "id": "cta", "component": "cta", "props": { "headline": "From merged to sellable. Automatically." }, "narration": "From merged to sellable, automatically." }
+  ],
+  "youtube_metadata": { "title": "Enablement Pipeline", "description": "d", "tags": ["uipath"], "chapters": [] }
+}

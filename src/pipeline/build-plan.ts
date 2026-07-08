@@ -1,13 +1,14 @@
-import { mkdirSync, readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
-import { validatePlanV2 } from "../content-director/plan-schema";
+import { validatePlanV3, isCustomScene } from "../content-director/plan-schema";
 import { validateScenePlan } from "../scenes/registry";
 import { loadBrandTokens } from "../brand/token-resolver";
 import { synthesizePlanAudio } from "../audio/assemble-audio";
 import { saySynthesizer, type SpeechSynthesizer } from "../audio/tts";
 import { buildCompositionV2 } from "../compose/build-composition-v2";
 import { render } from "../render/render";
+import { runGate } from "../qa/gate";
 
 export function pickSynthesizer(): SpeechSynthesizer {
   try {
@@ -28,8 +29,8 @@ export function pickSynthesizer(): SpeechSynthesizer {
 type Word = { text: string; start: number; end: number };
 
 export async function buildFromPlan(planPath: string, outDir: string): Promise<string> {
-  const plan = validatePlanV2(JSON.parse(readFileSync(planPath, "utf8")));
-  validateScenePlan(plan);
+  const plan = validatePlanV3(JSON.parse(readFileSync(planPath, "utf8")));
+  validateScenePlan({ scenes: plan.scenes.filter((s: any) => !isCustomScene(s)) } as any);
   const tokens = loadBrandTokens();
   mkdirSync(join(outDir, "audio"), { recursive: true });
   mkdirSync(join(outDir, "renders"), { recursive: true });
@@ -57,7 +58,22 @@ export async function buildFromPlan(planPath: string, outDir: string): Promise<s
 
   buildCompositionV2(planWithTiming as any, tokens, outDir, { audioRelPath: "audio/vo-norm.wav", captionHtml });
   render(outDir, "renders/video.mp4");
+
+  const qa = runGate(plan as any, tokens, outDir);
+  writeFileSync(join(outDir, "qa-report.json"), JSON.stringify(qa, null, 2));
+  if (!qa.ok) console.warn(`QA gate found ${qa.findings.length} issue(s) — see qa-report.json (self-review loop / human should resolve).`);
+
   return join(outDir, "renders", "video.mp4");
+}
+
+export function snapshot(mp4Path: string, times: number[], outDir: string): string[] {
+  const paths: string[] = [];
+  times.forEach((t, i) => {
+    const p = join(outDir, `frame-${i}.png`);
+    execFileSync("ffmpeg", ["-y", "-ss", String(t), "-i", mp4Path, "-frames:v", "1", "-vf", "scale=960:-1", p], { stdio: "ignore" });
+    paths.push(p);
+  });
+  return paths;
 }
 
 if (import.meta.main) {
