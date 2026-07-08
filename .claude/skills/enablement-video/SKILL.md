@@ -33,10 +33,31 @@ the M2 starter kit via `{ id, component, props, narration }`).
   `new Date(`, `fetch(`, `XMLHttpRequest`, `import(`.
 - `narration`: 1-3 spoken sentences; drives the scene's duration.
 
+## Seam transitions (make it a film, not slides)
+Give most scenes an authored exit so scenes flow into each other instead of hard-cutting:
+- `transitionOut`: authored GSAP run as `(tl, root, at) => { … }` — animate THIS scene leaving,
+  starting at `at` (its content-end). e.g. `tl.to(root,{xPercent:-12,autoAlpha:0,duration:0.6,ease:'power2.inOut'},at)`.
+- `transitionOverlap`: seconds this scene lingers into the next (typical 0.5–0.8; 0/absent = hard cut).
+- Pair it with the NEXT scene's entrance (its `motionScript`) so they cross: e.g. this scene pushes
+  left out while the next pushes in from the right; or this fades/scales out while the next fades in.
+- Vary transitions to fit the story; don't use the identical move on every seam.
+- FORBIDDEN in `transitionOut` too (fails QA): Date.now, Math.random, new Date(, fetch(, XMLHttpRequest, import(.
+
 ## Premium look (principles, not a template)
 Deep-blue backgrounds with subtle dual glow; Poppins headlines (tight tracking), Inter body;
 generous margins; restrained accent use (orange = hero, teal = agents); one clear focal point
 per scene.
+
+## Quality bar — detailed and top-notch
+- Every section must be FULLY DEVELOPED: a clear focal idea backed by concrete, specific content
+  (real examples, specific phrasing) — never a bare headline.
+- The video must be COMPREHENSIVE: problem → stakes → insight → mechanism → where it fits → payoff
+  → trust model → CTA, each beat earning its place with authored motion and a seam transition.
+- TOP-NOTCH production: considered hierarchy, purposeful explanatory motion, smooth transitions,
+  on-brand type/color, generous spacing.
+- Detailed ≠ cluttered: ONE clear focal point per scene, content within the caption safe-band
+  (keep the bottom ~180px clear for captions), restrained accents. Rich, not busy.
+- In self-review, reject thin/weak/cluttered/flat scenes and improve them before the human draft.
 
 ## Workflow
 1. Understand the feature from the source.
