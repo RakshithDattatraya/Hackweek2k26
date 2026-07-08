@@ -1,0 +1,96 @@
+{
+  "feature_name": "Feature to Enablement Video Pipeline",
+  "value_prop": "At merge, right after deploy, auto-draft a premium enablement video + one-pager so sales knows what shipped, where it fits, and how to position it.",
+  "persona": "Sales / Sales Engineering (internal enablement)",
+  "when_to_use": "When engineering velocity is outpacing sales' ability to learn, position, and place newly shipped features.",
+  "talking_points": [
+    "Engineering ships faster than sales can learn — sales are baffled by the pace",
+    "It runs right after deploy: merge is the moment of maximum context",
+    "The engineer's feature markets itself; sales knows what shipped, where it fits, right-fit customer",
+    "Human-in-the-loop: capture, not publish"
+  ],
+  "scenes": [
+    {
+      "id": "intro",
+      "html": "<div style='width:100%;display:flex;flex-direction:column;align-items:center;text-align:center'><div class='glow' style='position:absolute;width:900px;height:900px;border-radius:50%;background:radial-gradient(circle,rgba(250,70,22,.16),transparent 60%);filter:blur(20px);z-index:0'></div><img class='logo' src='assets/uipath-logo-orange.png' alt='UiPath' style='height:168px;width:auto;position:relative;z-index:1'/><div class='tag' style='font-family:var(--uip-font-head);font-weight:600;font-size:46px;color:var(--uip-white);margin-top:34px;position:relative;z-index:1'>Enablement<span style='color:var(--uip-orange)'>.</span> Automatically.</div></div>",
+      "motionScript": "tl.from(root.querySelector('.logo'),{autoAlpha:0,scale:0.82,duration:0.7,ease:'back.out(1.5)'},start+0.15);tl.from(root.querySelector('.tag'),{autoAlpha:0,y:28,duration:0.6,ease:'power2.out'},start+0.55);tl.to(root.querySelector('.glow'),{scale:1.15,duration:2.6,ease:'sine.inOut',repeat:1,yoyo:true},start+0.2);",
+      "narration": "UiPath enablement."
+    },
+    {
+      "id": "velocity",
+      "html": "<div class='eb' style='font-family:var(--uip-font-body);text-transform:uppercase;letter-spacing:.2em;font-weight:700;font-size:24px;color:var(--uip-teal);margin-bottom:22px'>Engineering velocity</div><div class='hl' style='font-family:var(--uip-font-head);font-weight:700;font-size:86px;letter-spacing:-0.045em;color:var(--uip-white);line-height:1.02;margin-bottom:52px'><span class='w'>Shipping</span> <span class='w'>has</span> <span class='w'>never</span> <span class='w'>been</span> <span class='w' style='color:var(--uip-orange)'>faster.</span></div><div class='track' style='display:flex;gap:15px;align-items:center'><span class='dot'></span><span class='dot'></span><span class='dot'></span><span class='dot'></span><span class='dot'></span><span class='dot'></span><span class='dot'></span><span class='dot'></span><span class='dot'></span><span class='dot'></span><span class='dot'></span><span class='dot'></span></div>",
+      "css": ".w{display:inline-block} .dot{width:32px;height:32px;border-radius:50%;background:var(--uip-orange);box-shadow:0 0 18px 3px rgba(250,70,22,.45)}",
+      "motionScript": "tl.from(root.querySelector('.eb'),{autoAlpha:0,y:18,duration:0.4},start+0.2);tl.from(root.querySelectorAll('.hl .w'),{autoAlpha:0,y:40,rotateX:-60,duration:0.5,stagger:0.09,ease:'back.out(1.7)'},start+0.4);tl.from(root.querySelectorAll('.dot'),{autoAlpha:0,scale:0,duration:0.3,stagger:0.07,ease:'back.out(2)'},start+1.2);tl.to(root.querySelectorAll('.dot'),{scale:1.35,duration:0.5,stagger:{each:0.07,repeat:3,yoyo:true},ease:'sine.inOut'},start+2.1);",
+      "narration": "Engineering velocity has never been higher. Builder-mindset engineers ship features constantly."
+    },
+    {
+      "id": "baffled",
+      "html": "<div class='hlb' style='font-family:var(--uip-font-head);font-weight:700;font-size:88px;letter-spacing:-0.045em;color:var(--uip-white);line-height:1.06;max-width:1400px'><span class='w'>Sales</span> <span class='w'>are</span> <span class='w' style='color:var(--uip-orange)'>baffled</span> <span class='w'>by</span> <span class='w'>the</span> <span class='w'>pace</span> <span class='w'>engineering</span> <span class='w'>ships</span> <span class='w'>at.</span></div>",
+      "css": ".w{display:inline-block}",
+      "motionScript": "tl.from(root.querySelectorAll('.hlb .w'),{autoAlpha:0,y:50,rotateX:-70,duration:0.55,stagger:0.08,ease:'back.out(1.6)'},start+0.3);tl.to(root.querySelector('.hlb .w:nth-child(3)'),{scale:1.12,duration:0.5,ease:'sine.inOut',repeat:1,yoyo:true},start+1.6);",
+      "narration": "And that speed has a cost: sales are baffled by the pace engineering ships at."
+    },
+    {
+      "id": "slack",
+      "component": "slack",
+      "props": {
+        "channel": "sales-help",
+        "members": 18,
+        "messages": [
+          { "color": "#E01E5A", "initials": "PS", "name": "Priya Sharma", "time": "9:38 AM", "text": "another 3 features merged this week?? I've completely lost track 😵‍💫" },
+          { "color": "#2EB67D", "initials": "MA", "name": "Marco Alvarez", "time": "9:39 AM", "text": "eng is shipping so fast I can't tell what's even <b>sellable</b> yet" },
+          { "color": "#36C5F0", "initials": "DV", "name": "Devansh Verma", "time": "9:41 AM", "text": "a customer asked about the new thing on a call and I was completely lost" },
+          { "color": "#ECB22E", "initials": "LT", "name": "Lena Torres", "time": "9:42 AM", "text": "how are we supposed to keep up with this pace 😮‍💨" }
+        ]
+      },
+      "narration": "The questions pour in. What shipped? What's it worth? Nobody can keep up."
+    },
+    {
+      "id": "gap",
+      "html": "<div class='hl2' style='font-family:var(--uip-font-head);font-weight:700;font-size:78px;letter-spacing:-0.04em;color:var(--uip-white);margin-bottom:60px'>Shipped isn't the same as <span style='color:var(--uip-orange)'>sellable.</span></div><div class='gaprow' style='display:flex;align-items:center;width:100%'><div class='gp eng'><div class='gp-ic'>🚀</div><div class='gp-t'>Engineering</div><div class='gp-s'>Ships constantly</div></div><div class='gapmid'><div class='gapline'></div><div class='gaplbl'>the gap widens</div></div><div class='gp sales'><div class='gp-ic'>🧭</div><div class='gp-t'>Sales</div><div class='gp-s'>Can't keep up</div></div></div>",
+      "css": ".gp{flex:1;background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.12);border-top-width:5px;border-radius:18px;padding:36px 38px} .gp.eng{border-top-color:var(--uip-teal)} .gp.sales{border-top-color:var(--uip-orange)} .gp-ic{font-size:46px;margin-bottom:18px} .gp-t{font-family:var(--uip-font-head);font-weight:700;font-size:40px;color:var(--uip-white);margin-bottom:8px} .gp-s{font-family:var(--uip-font-body);font-size:28px;color:var(--uip-white);opacity:.6} .gapmid{flex:0 0 300px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative} .gapline{width:100%;border-top:3px dashed var(--uip-white);opacity:.35} .gaplbl{position:absolute;top:22px;font-family:var(--uip-font-body);text-transform:uppercase;letter-spacing:.08em;font-size:19px;color:var(--uip-orange)}",
+      "motionScript": "tl.from(root.querySelector('.hl2'),{autoAlpha:0,y:24,duration:0.5,ease:'power2.out'},start+0.2);tl.from(root.querySelector('.eng'),{x:160,autoAlpha:0,duration:1.0,ease:'power3.out'},start+0.7);tl.from(root.querySelector('.sales'),{x:-160,autoAlpha:0,duration:1.0,ease:'power3.out'},start+0.7);tl.from(root.querySelector('.gapmid'),{autoAlpha:0,scaleX:0.2,duration:1.0,ease:'power2.out'},start+1.0);tl.to(root.querySelector('.eng'),{x:-14,duration:1.4,ease:'sine.inOut',repeat:3,yoyo:true},start+1.9);tl.to(root.querySelector('.sales'),{x:14,duration:1.4,ease:'sine.inOut',repeat:3,yoyo:true},start+1.9);tl.to(root.querySelector('.gaplbl'),{autoAlpha:0.4,duration:1.0,ease:'sine.inOut',repeat:3,yoyo:true},start+1.9);",
+      "narration": "So the gap between what's shipped and what's sellable keeps widening."
+    },
+    {
+      "id": "fits",
+      "html": "<div class='eb2' style='font-family:var(--uip-font-body);text-transform:uppercase;letter-spacing:.2em;font-weight:700;font-size:24px;color:var(--uip-teal);margin-bottom:20px'>Where it fits</div><div class='hl4' style='font-family:var(--uip-font-head);font-weight:700;font-size:82px;letter-spacing:-0.04em;color:var(--uip-white);margin-bottom:52px'><span class='w'>Right</span> <span class='w'>after</span> <span class='w'>you</span> <span class='w' style='color:var(--uip-orange)'>deploy.</span></div><div class='pipe' style='display:flex;align-items:center;gap:16px'><div class='pnode'>Code</div><div class='parr'>→</div><div class='pnode'>Build</div><div class='parr'>→</div><div class='pnode'>Test</div><div class='parr'>→</div><div class='pnode dep'>Deploy</div><div class='parr snap'>→</div><div class='pnode en'>🎬 Enablement</div></div>",
+      "css": ".w{display:inline-block} .pnode{background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.16);border-radius:14px;padding:24px 26px;font-family:var(--uip-font-head);font-weight:600;font-size:30px;color:var(--uip-white);white-space:nowrap} .pnode.dep{border-color:var(--uip-teal)} .pnode.en{border-color:var(--uip-orange);background:rgba(250,70,22,.12)} .parr{font-size:34px;color:var(--uip-white);opacity:.4}",
+      "motionScript": "tl.from(root.querySelector('.eb2'),{autoAlpha:0,y:16,duration:0.4},start+0.2);tl.from(root.querySelectorAll('.hl4 .w'),{autoAlpha:0,y:36,rotateX:-55,duration:0.5,stagger:0.08,ease:'back.out(1.6)'},start+0.4);tl.from(root.querySelectorAll('.pnode:not(.en), .parr:not(.snap)'),{autoAlpha:0,y:20,duration:0.35,stagger:0.14,ease:'power2.out'},start+1.2);tl.from(root.querySelector('.snap'),{autoAlpha:0,duration:0.3},start+2.4);tl.from(root.querySelector('.en'),{autoAlpha:0,scale:0,duration:0.6,ease:'back.out(2)'},start+2.55);tl.to(root.querySelector('.en'),{boxShadow:'0 0 34px 6px rgba(250,70,22,.55)',duration:0.9,ease:'sine.inOut',repeat:3,yoyo:true},start+3.2);",
+      "narration": "So we added one step. Right after deploy — the moment the feature ships — the pipeline auto-drafts the enablement."
+    },
+    {
+      "id": "market",
+      "html": "<div class='hl5' style='font-family:var(--uip-font-head);font-weight:700;font-size:82px;letter-spacing:-0.04em;color:var(--uip-white);margin-bottom:52px'><span class='w'>Your</span> <span class='w'>feature</span> <span class='w' style='color:var(--uip-orange)'>markets</span> <span class='w' style='color:var(--uip-orange)'>itself.</span></div><div class='market' style='display:flex;align-items:center;gap:22px'><div class='mk eng'><div class='mk-ic'>👩‍💻</div>You merged it</div><div class='marr'>→</div><div class='mk art'><div class='mk-ic'>🎬</div>Auto video + one-pager</div><div class='marr'>→</div><div class='mk sales'><div class='mk-ic'>💼</div>Sales pitches it</div></div>",
+      "css": ".w{display:inline-block} .mk{background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.16);border-radius:16px;padding:28px 30px;font-family:var(--uip-font-head);font-weight:600;font-size:30px;color:var(--uip-white);text-align:center} .mk.art{border-color:var(--uip-orange)} .mk-ic{font-size:52px;margin-bottom:12px} .marr{font-size:38px;color:var(--uip-white);opacity:.4}",
+      "motionScript": "tl.from(root.querySelectorAll('.hl5 .w'),{autoAlpha:0,y:40,rotateX:-60,duration:0.5,stagger:0.08,ease:'back.out(1.6)'},start+0.3);tl.from(root.querySelector('.mk.eng'),{autoAlpha:0,x:-40,duration:0.5,ease:'power2.out'},start+0.95);tl.from(root.querySelectorAll('.marr')[0],{autoAlpha:0,duration:0.3},start+1.4);tl.from(root.querySelector('.mk.art'),{autoAlpha:0,scale:0.68,duration:0.55,ease:'back.out(1.6)'},start+1.6);tl.from(root.querySelectorAll('.marr')[1],{autoAlpha:0,duration:0.3},start+2.05);tl.from(root.querySelector('.mk.sales'),{autoAlpha:0,x:40,duration:0.5,ease:'power2.out'},start+2.25);tl.to(root.querySelector('.mk.art'),{y:-12,duration:1.2,ease:'sine.inOut',repeat:3,yoyo:true},start+2.9);",
+      "narration": "The engineer who built it doesn't have to become a marketer. Their feature markets itself, and sales can sell it."
+    },
+    {
+      "id": "gets",
+      "html": "<div class='eb3' style='font-family:var(--uip-font-body);text-transform:uppercase;letter-spacing:.2em;font-weight:700;font-size:24px;color:var(--uip-teal);margin-bottom:22px'>Now sales knows</div><ul class='got' style='list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:24px'><li class='gi'><span class='c'>✓</span>What shipped</li><li class='gi'><span class='c'>✓</span>Where it fits</li><li class='gi'><span class='c'>✓</span>How to position it</li><li class='gi'><span class='c'>✓</span>The right-fit customer</li></ul>",
+      "css": ".gi{display:flex;align-items:center;gap:24px;font-family:var(--uip-font-head);font-weight:600;font-size:44px;color:var(--uip-white)} .c{flex:0 0 auto;width:54px;height:54px;border-radius:50%;background:rgba(11,162,179,.16);color:var(--uip-teal);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700}",
+      "motionScript": "tl.from(root.querySelector('.eb3'),{autoAlpha:0,y:16,duration:0.4},start+0.2);tl.from(root.querySelectorAll('.gi'),{autoAlpha:0,x:-32,duration:0.45,stagger:0.22,ease:'power2.out'},start+0.6);tl.from(root.querySelectorAll('.c'),{scale:0,duration:0.4,stagger:0.22,ease:'back.out(2.2)'},start+0.7);",
+      "narration": "Now sales instantly knows what shipped, where it fits, how to position it, and which customer it's the right fit for."
+    },
+    {
+      "id": "hitl",
+      "html": "<div class='eb4' style='font-family:var(--uip-font-body);text-transform:uppercase;letter-spacing:.2em;font-weight:700;font-size:24px;color:var(--uip-orange);margin-bottom:20px'>Human in the loop</div><div class='hl6' style='font-family:var(--uip-font-head);font-weight:700;font-size:80px;letter-spacing:-0.04em;color:var(--uip-white);margin-bottom:50px'>Capture, <span style='color:var(--uip-orange)'>not publish.</span></div><div class='hflow' style='display:flex;align-items:center;gap:18px'><div class='hn'>🔀 Merge</div><div class='harr'>→</div><div class='hn'>🎬 Draft</div><div class='harr'>→</div><div class='hn gate'>👤 Human review</div><div class='harr'>→</div><div class='hn ok'>🚀 Publish</div></div>",
+      "css": ".hn{background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.16);border-radius:14px;padding:24px 28px;font-family:var(--uip-font-head);font-weight:600;font-size:30px;color:var(--uip-white);white-space:nowrap} .hn.gate{border-color:var(--uip-orange);background:rgba(250,70,22,.12)} .hn.ok{border-color:var(--uip-teal)} .harr{font-size:34px;color:var(--uip-white);opacity:.4}",
+      "motionScript": "tl.from(root.querySelector('.eb4'),{autoAlpha:0,y:16,duration:0.4},start+0.2);tl.from(root.querySelector('.hl6'),{autoAlpha:0,y:26,duration:0.5,ease:'power2.out'},start+0.4);tl.from(root.querySelectorAll('.hn, .harr'),{autoAlpha:0,y:20,duration:0.35,stagger:0.13,ease:'power2.out'},start+0.95);tl.to(root.querySelector('.gate'),{boxShadow:'0 0 30px 6px rgba(250,70,22,.5)',duration:0.8,ease:'sine.inOut',repeat:3,yoyo:true},start+2.2);",
+      "narration": "And it never ships on its own. A merge triggers capture, not publish — a person signs off before anything reaches a customer."
+    },
+    {
+      "id": "cta",
+      "html": "<div style='width:100%;display:flex;flex-direction:column;align-items:center;text-align:center'><div class='ctacard' style='background:var(--uip-white);border-radius:26px;padding:50px 66px;box-shadow:0 34px 90px rgba(0,0,0,.45)'><img class='clogo' src='assets/uipath-logo-orange.png' alt='UiPath' style='height:90px;width:auto;display:block'/></div><div class='chl' style='font-family:var(--uip-font-head);font-weight:700;font-size:82px;letter-spacing:-0.04em;color:var(--uip-white);margin-top:46px;line-height:1.06'>From merged to sellable.<br/><span style='color:var(--uip-orange)'>Automatically.</span></div></div>",
+      "motionScript": "tl.from(root.querySelector('.ctacard'),{autoAlpha:0,scale:0.8,duration:0.6,ease:'back.out(1.5)'},start+0.15);tl.from(root.querySelector('.chl'),{autoAlpha:0,y:30,duration:0.6,ease:'power2.out'},start+0.55);tl.to(root.querySelector('.ctacard'),{y:-10,duration:1.6,ease:'sine.inOut',repeat:2,yoyo:true},start+0.9);",
+      "narration": "From merged to sellable — automatically, and on brand."
+    }
+  ],
+  "youtube_metadata": {
+    "title": "Feature → Enablement Video Pipeline — Internal Enablement",
+    "description": "Engineering out-ships sales' ability to keep up — sales are baffled by the pace. Right after deploy, this pipeline auto-drafts an enablement video + one-pager so sales knows what shipped, where it fits, and how to position it.",
+    "tags": ["uipath", "enablement", "sales", "pipeline"],
+    "chapters": []
+  }
+}
