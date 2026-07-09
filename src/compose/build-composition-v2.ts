@@ -159,10 +159,19 @@ ${audioEl}
       const kids = scene.querySelectorAll('.anim');
       if (kids.length && !scene.dataset.ownMotion) tl.from(kids, { autoAlpha: 0, y: 44, duration: 0.6, stagger: stagger, ease: 'back.out(1.6)' }, start + 0.28);
     });
-    document.querySelectorAll('.cap').forEach((cap) => {
+    // Captions hand off cleanly: each cue fully fades OUT exactly as the next fades IN,
+    // so two captions are never on screen at once (they share the same bottom position).
+    const caps = Array.from(document.querySelectorAll('.cap'));
+    const IN = 0.1, OUT = 0.08;
+    caps.forEach((cap, ci) => {
       const s = parseFloat(cap.dataset.s), e = parseFloat(cap.dataset.e);
-      tl.fromTo(cap, { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.22, ease: 'power2.out' }, Math.max(0, s - 0.08));
-      tl.to(cap, { autoAlpha: 0, duration: 0.2, ease: 'power1.in' }, e + 0.18);
+      const next = caps[ci + 1];
+      const nextShow = next ? Math.max(0, parseFloat(next.dataset.s) - 0.05) : Infinity;
+      const showAt = Math.max(0, s - 0.05);
+      // fade-out must COMPLETE (showAt + ... ) by the next cue's fade-in start → no overlap
+      const outAt = next ? Math.max(showAt + IN, nextShow - OUT) : (e + 0.3);
+      tl.fromTo(cap, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: IN, ease: 'power2.out' }, showAt);
+      tl.to(cap, { autoAlpha: 0, duration: OUT, ease: 'power1.in' }, outAt);
       cap.querySelectorAll('.capw').forEach((w) => { tl.to(w, { color: '#ffffff', duration: 0.12 }, parseFloat(w.dataset.t)); });
     });
     // custom-scene authored motion (spliced; determinism enforced by QA lint)
