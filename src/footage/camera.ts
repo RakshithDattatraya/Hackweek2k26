@@ -31,8 +31,10 @@ export function buildZoomFilter(keyframes: ZoomKeyframe[], opts: { durationSec: 
   const Z = pieces(kfs.map((k) => ({ at: k.at, v: k.scale })));
   const CX = pieces(kfs.map((k) => ({ at: k.at, v: k.x })));
   const CY = pieces(kfs.map((k) => ({ at: k.at, v: k.y })));
+  // scale supports eval=frame; crop has no `eval` option in some ffmpeg builds but its x/y
+  // are per-frame expressions by default (timeline-flagged), so no eval= needed there.
   return `scale=w='trunc(${W}*(${Z})/2)*2':h='trunc(${H}*(${Z})/2)*2':eval=frame,` +
-         `crop=${W}:${H}:x='clip((${CX})*iw-${W / 2},0,iw-${W})':y='clip((${CY})*ih-${H / 2},0,ih-${H})':eval=frame`;
+         `crop=${W}:${H}:x='clip((${CX})*iw-${W / 2},0,iw-${W})':y='clip((${CY})*ih-${H / 2},0,ih-${H})'`;
 }
 
 /** Apply the camera move to a clip (video-only output). */
