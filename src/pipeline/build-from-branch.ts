@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, existsSync } from "node:fs";
+import { mkdirSync, readFileSync, existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
 import { validatePlanV3, isFootageScene } from "../content-director/plan-schema";
@@ -13,6 +13,9 @@ import { buildSfxTrack, type SfxEvent } from "../audio/sfx";
 import { selectLibraryTrack } from "../audio/library";
 import { resolveOrSynthMusic } from "../audio/music";
 import { buildOnePager } from "../onepager/build-onepager";
+import { runGate } from "../qa/gate";
+import { renderCheck } from "../qa/render-check";
+import { wordsToSrt } from "../compose/captions-srt";
 
 function probeDur(p: string): number {
   return parseFloat(execFileSync("ffprobe", ["-v","error","-show_entries","format=duration","-of","default=noprint_wrappers=1:nokey=1", p]).toString().trim());
@@ -86,8 +89,38 @@ export async function buildFromBranch(planPath: string, outDir: string): Promise
   const finalAudio = join(audioOut, "final.wav");
   mixFinalAudio({ voPath: fullVo, musicPath, sfxPath, totalDurationSec: total, workDir: audioOut, outPath: finalAudio, musicGainDb: process.env.ENABLEMENT_MUSIC_GAIN_DB ? Number(process.env.ENABLEMENT_MUSIC_GAIN_DB) : undefined });
 
+  // Captions: transcribe the concatenated VO → SRT → burn onto the video (best-effort).
+  let subFilter = "";
+  try {
+    const nodeBin = process.env.HYPERFRAMES_NODE_BIN;
+    const hfEnv = nodeBin ? { ...process.env, PATH: `${nodeBin}:${process.env.PATH}` } : process.env;
+    execFileSync("npx", ["-y", "hyperframes@latest", "transcribe", "audio/vo-norm.wav", "--json", "--optional"], { cwd: outDir, env: hfEnv, stdio: "ignore" });
+    const words = JSON.parse(readFileSync(join(audioOut, "transcript.json"), "utf8"));
+    writeFileSync(join(outDir, "captions.srt"), wordsToSrt(words));
+    subFilter = "subtitles=captions.srt:force_style='FontName=Inter,FontSize=16,PrimaryColour=&Hffffff&,OutlineColour=&H80000000&,BorderStyle=1,Outline=1,Shadow=1,Alignment=2,MarginV=50'";
+  } catch { subFilter = ""; }
+
   const finalVideo = join(outDir, "renders/video.mp4");
-  execFileSync("ffmpeg", ["-y", "-i", bodyVideo, "-i", finalAudio, "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", finalVideo], { stdio: "ignore" });
+  let burned = false;
+  if (subFilter) {
+    try {
+      execFileSync("ffmpeg", ["-y", "-i", "renders/body.mp4", "-i", "audio/final.wav", "-map", "0:v:0", "-map", "1:a:0", "-vf", subFilter, "-c:v", "libx264", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-shortest", "renders/video.mp4"], { cwd: outDir, stdio: "ignore" });
+      burned = true;
+    } catch { burned = false; } // e.g. ffmpeg build lacks libass/subtitles filter — fall back below.
+  }
+  if (!burned) {
+    execFileSync("ffmpeg", ["-y", "-i", bodyVideo, "-i", finalAudio, "-map", "0:v:0", "-map", "1:a:0", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", finalVideo], { stdio: "ignore" });
+  }
+
+  // QA gate over the generated segments (lint + brand on the full plan; render-check per segment).
+  const gateBase = runGate(plan as any, tokens, "", { skipRenderCheck: true });
+  const segFindings = [
+    ...(front ? renderCheck(join(outDir, "seg-front")) : []),
+    ...(back ? renderCheck(join(outDir, "seg-back")) : []),
+  ];
+  const qa = { ok: gateBase.findings.length + segFindings.length === 0, findings: [...gateBase.findings, ...segFindings] };
+  writeFileSync(join(outDir, "qa-report.json"), JSON.stringify(qa, null, 2));
+  if (!qa.ok) console.warn(`QA gate found ${qa.findings.length} issue(s) — see qa-report.json.`);
 
   try {
     const op = buildOnePager(plan as any, tokens, join(outDir, "onepager"), { videoPath: finalVideo });
