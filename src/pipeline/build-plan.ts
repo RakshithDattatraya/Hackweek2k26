@@ -14,6 +14,7 @@ import { resolveOrSynthMusic } from "../audio/music";
 import { selectLibraryTrack } from "../audio/library";
 import { buildSfxTrack, type SfxEvent } from "../audio/sfx";
 import { mixFinalAudio } from "../audio/mix";
+import { buildOnePager } from "../onepager/build-onepager";
 
 export function pickSynthesizer(): SpeechSynthesizer {
   // Prefer ElevenLabs (expressive, natural) when a key is available.
@@ -101,6 +102,14 @@ export async function buildFromPlan(planPath: string, outDir: string): Promise<s
   const qa = runGate(plan as any, tokens, outDir);
   writeFileSync(join(outDir, "qa-report.json"), JSON.stringify(qa, null, 2));
   if (!qa.ok) console.warn(`QA gate found ${qa.findings.length} issue(s) — see qa-report.json (self-review loop / human should resolve).`);
+
+  // One-pager (same plan, second artifact). Non-fatal: never fail the video build.
+  try {
+    const op = buildOnePager(plan as any, tokens, join(outDir, "onepager"), { videoPath: join(outDir, "renders/video.mp4") });
+    console.log(`One-pager: ${op.htmlPath}${op.pdfPath ? ` (+ ${op.pdfPath})` : " (PDF skipped — no Chrome)"}`);
+  } catch (e: any) {
+    console.warn("One-pager generation skipped:", e?.message);
+  }
 
   return join(outDir, "renders", "video.mp4");
 }
