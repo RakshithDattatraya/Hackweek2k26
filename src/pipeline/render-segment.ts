@@ -10,7 +10,7 @@ import { loadBrandTokens } from "../brand/token-resolver";
 import { pickSynthesizer } from "./build-plan";
 
 /** Render a subset of scenes to an mp4 with VO-only audio (no music/SFX/captions). */
-export function renderSegment(scenes: any[], outDir: string): { videoPath: string; voPath: string; duration: number } {
+export function renderSegment(scenes: any[], outDir: string): { videoPath: string; voPath: string; duration: number; timedScenes: any[] } {
   const tokens = loadBrandTokens();
   // Validate only registry-component scenes (custom + footage handled elsewhere / excluded).
   validateScenePlan({ scenes: scenes.filter((s: any) => !isCustomScene(s) && !isFootageScene(s)) } as any);
@@ -31,6 +31,7 @@ export function renderSegment(scenes: any[], outDir: string): { videoPath: strin
   buildCompositionV2(planWithTiming as any, tokens, outDir, { audioRelPath: "audio/vo-norm.wav", captionHtml: "" });
   render(outDir, "renders/video.mp4");
 
-  const duration = (planWithTiming.scenes as any[]).reduce((a, s) => a + (s.duration ?? 4), 0);
-  return { videoPath: join(outDir, "renders/video.mp4"), voPath: join(outDir, "audio/vo-norm.wav"), duration };
+  const timedScenes = planWithTiming.scenes as any[];
+  const duration = timedScenes.reduce((a, s) => a + (s.duration ?? 4), 0);
+  return { videoPath: join(outDir, "renders/video.mp4"), voPath: join(outDir, "audio/vo-norm.wav"), duration, timedScenes };
 }

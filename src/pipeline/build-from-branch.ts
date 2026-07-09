@@ -20,6 +20,9 @@ function probeDur(p: string): number {
 
 export async function buildFromBranch(planPath: string, outDir: string): Promise<string> {
   const plan = validatePlanV3(JSON.parse(readFileSync(planPath, "utf8")));
+  if (plan.scenes.filter((s: any) => isFootageScene(s)).length > 1) {
+    throw new Error("Only one footage scene is supported per plan (found multiple).");
+  }
   const footageIdx = plan.scenes.findIndex((s: any) => isFootageScene(s));
 
   let clipPath: string | null = null;
@@ -68,10 +71,12 @@ export async function buildFromBranch(planPath: string, outDir: string): Promise
   // SFX: pops within generated segments (offset), whooshes at the two seams.
   const frontDur = front ? probeDur(front.videoPath) : 0;
   const events: SfxEvent[] = [];
-  if (front) sfxEventsFromPlan({ scenes: before as any }).events.filter((e) => e.kind === "pop").forEach((e) => events.push(e));
+  // Use the segments' REAL VO-driven scene timings (front.timedScenes), not the raw plan
+  // scenes (which lack durations → would default to 4s and misplace pops into the clip).
+  if (front) sfxEventsFromPlan({ scenes: front.timedScenes }).events.filter((e) => e.kind === "pop").forEach((e) => events.push(e));
   events.push({ at: frontDur, kind: "whoosh" });
   events.push({ at: frontDur + clipDur, kind: "whoosh" });
-  if (back) sfxEventsFromPlan({ scenes: after as any }).events.filter((e) => e.kind === "pop").forEach((e) => events.push({ at: e.at + frontDur + clipDur, kind: "pop" }));
+  if (back) sfxEventsFromPlan({ scenes: back.timedScenes }).events.filter((e) => e.kind === "pop").forEach((e) => events.push({ at: e.at + frontDur + clipDur, kind: "pop" }));
 
   const noMusic = process.env.ENABLEMENT_NO_MUSIC === "1", noSfx = process.env.ENABLEMENT_NO_SFX === "1";
   const libTrack = selectLibraryTrack((plan as any).music_mood, join(process.cwd(), "brand/audio/library"));
