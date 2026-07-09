@@ -10,7 +10,7 @@ function pieces(points: { at: number; v: number }[]): string {
   let expr = n(points[points.length - 1].v); // t >= last.at → last value
   for (let i = points.length - 2; i >= 0; i--) {
     const t0 = points[i].at, t1 = points[i + 1].at, v0 = points[i].v, v1 = points[i + 1].v;
-    const dt = (t1 - t0) || 1e-6;
+    const dt = Math.max(t1 - t0, 1e-4); // guard: never round to 0 in n() → no div-by-zero
     const p = `clip((t-${n(t0)})/${n(dt)},0,1)`;
     const seg = `(${n(v0)}+${n(v1 - v0)}*(${p}*${p}*(3-2*${p})))`;
     expr = `if(lt(t,${n(t1)}),${seg},${expr})`;
