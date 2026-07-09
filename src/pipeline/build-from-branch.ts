@@ -7,6 +7,7 @@ import { getPrContext, detectDemoVideo } from "../ingest/pr-context";
 import { buildFromPlan, pickSynthesizer, sfxEventsFromPlan } from "./build-plan";
 import { renderSegment } from "./render-segment";
 import { normalizeClip } from "../footage/normalize";
+import { applyCameraMove } from "../footage/camera";
 import { concatVideos, concatAudios } from "../compose/concat-segments";
 import { mixFinalAudio } from "../audio/mix";
 import { buildSfxTrack, type SfxEvent } from "../audio/sfx";
@@ -57,13 +58,21 @@ export async function buildFromBranch(planPath: string, outDir: string): Promise
   const clip = join(outDir, "clip.mp4");
   const { duration: clipDur } = normalizeClip(clipPath, clip);
 
+  // Camera director: subtle default zoom (or authored keyframes) on the footage. Video-only.
+  let clipForConcat = clip;
+  if (process.env.ENABLEMENT_NO_ZOOM !== "1") {
+    const moved = join(outDir, "clip-cam.mp4");
+    applyCameraMove(clip, moved, { durationSec: clipDur, zoom: (footageScene.footage.zoom as any) });
+    clipForConcat = moved;
+  }
+
   // demo-beat VO, padded/trimmed to the clip length
   const rawVo = join(audioOut, "demo-vo-raw.wav");
   pickSynthesizer().synthesize(footageScene.footage.narration, rawVo);
   const clipVo = join(audioOut, "demo-vo.wav");
   execFileSync("ffmpeg", ["-y", "-i", rawVo, "-af", "loudnorm=I=-16:TP=-1.5:LRA=11,apad", "-t", clipDur.toFixed(3), "-ar", "48000", "-ac", "2", clipVo], { stdio: "ignore" });
 
-  const videos = [front?.videoPath, clip, back?.videoPath].filter(Boolean) as string[];
+  const videos = [front?.videoPath, clipForConcat, back?.videoPath].filter(Boolean) as string[];
   const vos = [front?.voPath, clipVo, back?.voPath].filter(Boolean) as string[];
   const bodyVideo = join(outDir, "renders/body.mp4");
   concatVideos(videos, bodyVideo);
