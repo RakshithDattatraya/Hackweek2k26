@@ -3,10 +3,10 @@ import { join } from "node:path";
 
 export type SfxEvent = { at: number; kind: "whoosh" | "pop" };
 
-/** Soft filtered pink-noise sweep (~0.5s), 44.1kHz stereo. Static → deterministic. */
+/** Soft filtered pink-noise sweep (~0.5s), 44.1kHz stereo. Seeded → deterministic. */
 export function synthWhoosh(outPath: string): void {
   execFileSync("ffmpeg", ["-y",
-    "-f", "lavfi", "-i", "anoisesrc=d=0.5:c=pink:a=0.5",
+    "-f", "lavfi", "-i", "anoisesrc=d=0.5:c=pink:a=0.5:seed=1",
     "-af", "highpass=f=300,lowpass=f=6000,afade=t=in:st=0:d=0.08,afade=t=out:st=0.25:d=0.25,volume=0.5",
     "-ar", "44100", "-ac", "2", outPath], { stdio: "ignore" });
 }
