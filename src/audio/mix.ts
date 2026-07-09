@@ -17,7 +17,9 @@ export function mixFinalAudio(args: {
 }): void {
   const { voPath, musicPath, sfxPath, outPath } = args;
   const T = Math.max(0.1, args.totalDurationSec).toFixed(3);
-  const gain = args.musicGainDb ?? -20;
+  // Trim on the music AFTER normalization; gain is an offset applied on top of the
+  // normalized level (default 0 → music sits ~7 dB under the -16 LUFS voice).
+  const gain = args.musicGainDb ?? 0;
 
   // No music and no sfx → normalize VO through to the final format.
   if (!musicPath && !sfxPath) {
@@ -33,8 +35,12 @@ export function mixFinalAudio(args: {
   if (musicPath) {
     inputs.push("-stream_loop", "-1", "-i", musicPath); // loop music infinitely
     const mi = idx++;
-    chains.push(`[${mi}:a]atrim=0:${T},volume=${gain}dB[m]`);
-    chains.push(`[m][0:a]sidechaincompress=threshold=0.03:ratio=8:attack=200:release=800[md]`);
+    // Normalize the bed to a known loudness (-23 LUFS) so its level is source-independent
+    // (synth pad OR a dropped-in track), then apply the gain offset. It ends up ~7 dB under
+    // the -16 LUFS voice — a present-but-subtle bed.
+    chains.push(`[${mi}:a]atrim=0:${T},loudnorm=I=-23:TP=-2,volume=${gain}dB[m]`);
+    // Gentle sidechain duck keyed by the VO: quick recovery so the bed stays audible between words.
+    chains.push(`[m][0:a]sidechaincompress=threshold=0.05:ratio=4:attack=5:release=250[md]`);
     mixLabels.push("[md]");
   }
   if (sfxPath) {
