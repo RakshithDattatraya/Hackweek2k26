@@ -79,3 +79,16 @@ per scene.
   within the frame.
 - Motion, captions, and the premium voice are applied by the pipeline — focus on story, layout,
   and authored motion.
+
+## Claim-check (pre-publish, before the human review gate)
+The pipeline writes `out/**/claim-check-request.json` = `{ commits, diff, scenes: [{ id, narration }] }`.
+Before a draft is handed to a human, review it for hallucinated claims:
+- For each scene's narration, check every factual claim against the `diff`/`commits` (the ground truth).
+- Flag anything the source does NOT support — especially metrics/percentages ("cuts time 40%"),
+  named integrations ("now supports SSO"), and absolute guarantees ("fully automated", "zero errors").
+  When unsure, flag it. General positioning/framing that isn't a factual product claim is fine.
+- Write the findings as a JSON array to `claims.json` in the same output dir, each item:
+  `{ "sceneId": "<id>", "claim": "<quoted words>", "severity": "high"|"medium", "reason": "<why unsupported>" }`.
+  Empty array `[]` means nothing unsupported.
+The gate folds `claims.json` into `qa-report.json` as `claimReview`. Safe to publish =
+render-QA `ok` AND `claimReview.status === "reviewed"` AND no `high`-severity claim.

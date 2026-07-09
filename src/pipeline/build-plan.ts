@@ -15,6 +15,8 @@ import { selectLibraryTrack } from "../audio/library";
 import { buildSfxTrack, type SfxEvent } from "../audio/sfx";
 import { mixFinalAudio } from "../audio/mix";
 import { buildOnePager } from "../onepager/build-onepager";
+import { getPrContext } from "../ingest/pr-context";
+import { buildClaimRequest, applyClaimGate } from "../qa/claim-check";
 
 export function pickSynthesizer(): SpeechSynthesizer {
   // Prefer ElevenLabs (expressive, natural) when a key is available.
@@ -100,7 +102,13 @@ export async function buildFromPlan(planPath: string, outDir: string): Promise<s
   render(outDir, "renders/video.mp4");
 
   const qa = runGate(plan as any, tokens, outDir);
-  writeFileSync(join(outDir, "qa-report.json"), JSON.stringify(qa, null, 2));
+  let report: any = qa;
+  try {
+    const pr = getPrContext();
+    const claimReview = applyClaimGate(outDir, buildClaimRequest({ commits: pr.commits, diff: pr.diff }, plan.scenes as any));
+    report = { ...qa, claimReview };
+  } catch (e: any) { console.warn("Claim-check skipped:", e?.message); }
+  writeFileSync(join(outDir, "qa-report.json"), JSON.stringify(report, null, 2));
   if (!qa.ok) console.warn(`QA gate found ${qa.findings.length} issue(s) — see qa-report.json (self-review loop / human should resolve).`);
 
   // One-pager (same plan, second artifact). Non-fatal: never fail the video build.

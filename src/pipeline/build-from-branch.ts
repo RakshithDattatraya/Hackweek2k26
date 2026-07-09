@@ -16,6 +16,7 @@ import { resolveOrSynthMusic } from "../audio/music";
 import { buildOnePager } from "../onepager/build-onepager";
 import { runGate } from "../qa/gate";
 import { renderCheck } from "../qa/render-check";
+import { buildClaimRequest, applyClaimGate } from "../qa/claim-check";
 import { wordsToSrt } from "../compose/captions-srt";
 
 function probeDur(p: string): number {
@@ -128,7 +129,13 @@ export async function buildFromBranch(planPath: string, outDir: string): Promise
     ...(back ? renderCheck(join(outDir, "seg-back")) : []),
   ];
   const qa = { ok: gateBase.findings.length + segFindings.length === 0, findings: [...gateBase.findings, ...segFindings] };
-  writeFileSync(join(outDir, "qa-report.json"), JSON.stringify(qa, null, 2));
+  let report: any = qa;
+  try {
+    const pr = getPrContext();
+    const claimReview = applyClaimGate(outDir, buildClaimRequest({ commits: pr.commits, diff: pr.diff }, plan.scenes as any));
+    report = { ...qa, claimReview };
+  } catch (e: any) { console.warn("Claim-check skipped:", e?.message); }
+  writeFileSync(join(outDir, "qa-report.json"), JSON.stringify(report, null, 2));
   if (!qa.ok) console.warn(`QA gate found ${qa.findings.length} issue(s) — see qa-report.json.`);
 
   try {
