@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
+import { pathToFileURL } from "node:url";
 
 const MAC_CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const CANDIDATES = ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser"];
@@ -21,11 +22,13 @@ export function resolveChrome(): string | null {
 export function htmlToPdf(htmlPath: string, pdfPath: string): boolean {
   const chrome = resolveChrome();
   if (!chrome) return false;
-  execFileSync(chrome, [
-    "--headless=new", "--disable-gpu", "--no-sandbox",
-    "--virtual-time-budget=3000",
-    `--print-to-pdf=${pdfPath}`, "--no-pdf-header-footer",
-    `file://${htmlPath}`,
-  ], { stdio: "ignore" });
-  return true;
+  try {
+    execFileSync(chrome, [
+      "--headless=new", "--disable-gpu", "--no-sandbox",
+      "--virtual-time-budget=3000",
+      `--print-to-pdf=${pdfPath}`, "--no-pdf-header-footer",
+      pathToFileURL(htmlPath).href,  // encodes spaces/special chars in the path
+    ], { stdio: "ignore" });
+  } catch { return false; }          // Chrome failure degrades gracefully (HTML already written)
+  return existsSync(pdfPath);        // only true if the PDF was actually produced
 }

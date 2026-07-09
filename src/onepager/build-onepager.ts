@@ -9,7 +9,8 @@ import { htmlToPdf } from "./to-pdf";
 
 function probeDuration(path: string): number {
   try {
-    return parseFloat(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", path]).toString().trim());
+    const d = parseFloat(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", path]).toString().trim());
+    return Number.isFinite(d) ? d : 0;  // unparseable ffprobe output → 0 (not NaN)
   } catch { return 0; }
 }
 
