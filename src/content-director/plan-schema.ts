@@ -89,11 +89,24 @@ export const CustomSceneSchema = z.object({
   transitionOverlap: z.number().nonnegative().optional(),
 });
 
+export const FootageSceneSchema = z.object({
+  id: z.string().min(1).regex(/^[a-zA-Z0-9_-]+$/, "id must be alphanumeric, underscore, or hyphen"),
+  footage: z.object({ narration: z.string().min(1), clipPath: z.string().optional() }),
+  duration: z.number().positive().optional(),
+  transitionOut: z.string().optional(),
+  transitionOverlap: z.number().nonnegative().optional(),
+});
+export type FootageScene = z.infer<typeof FootageSceneSchema>;
+
+export function isFootageScene(s: unknown): s is FootageScene {
+  return typeof s === "object" && s !== null && "footage" in s;
+}
+
 export const VideoPlanV3Schema = z.object({
   feature_name: z.string().min(1), value_prop: z.string(), persona: z.string(),
   when_to_use: z.string(), talking_points: z.array(z.string()).min(1),
   music_mood: z.string().optional(),
-  scenes: z.array(z.union([SceneV2Schema, CustomSceneSchema])).min(1),
+  scenes: z.array(z.union([FootageSceneSchema, CustomSceneSchema, SceneV2Schema])).min(1),
   youtube_metadata: z.object({ title: z.string(), description: z.string(),
     tags: z.array(z.string()), chapters: z.array(z.object({ title: z.string(), start: z.number().nonnegative() })) }),
 });
