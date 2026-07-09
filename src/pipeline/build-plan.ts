@@ -10,6 +10,9 @@ import { elevenlabsSynthesizer, hasElevenLabs } from "../audio/elevenlabs";
 import { buildCompositionV2 } from "../compose/build-composition-v2";
 import { render } from "../render/render";
 import { runGate } from "../qa/gate";
+import { resolveOrSynthMusic } from "../audio/music";
+import { buildSfxTrack, type SfxEvent } from "../audio/sfx";
+import { mixFinalAudio } from "../audio/mix";
 
 export function pickSynthesizer(): SpeechSynthesizer {
   // Prefer ElevenLabs (expressive, natural) when a key is available.
@@ -29,6 +32,21 @@ export function pickSynthesizer(): SpeechSynthesizer {
   return saySynthesizer;
 }
 
+/** Derive SFX events + total duration from the timed plan, matching composition scene windows. */
+export function sfxEventsFromPlan(plan: { scenes: { duration?: number }[] }): { events: SfxEvent[]; totalDuration: number } {
+  const r2 = (n: number) => Math.round(n * 100) / 100;
+  const bounds: number[] = [0];
+  for (const s of plan.scenes) bounds.push(bounds[bounds.length - 1] + (s.duration ?? 4));
+  const events: SfxEvent[] = [];
+  plan.scenes.forEach((_, i) => {
+    const start = r2(bounds[i]);
+    const dur = r2(bounds[i + 1]) - start;
+    events.push({ at: start + 0.3, kind: "pop" });
+    if (i < plan.scenes.length - 1) events.push({ at: start + dur, kind: "whoosh" });
+  });
+  return { events, totalDuration: r2(bounds[bounds.length - 1]) };
+}
+
 type Word = { text: string; start: number; end: number };
 
 export async function buildFromPlan(planPath: string, outDir: string): Promise<string> {
@@ -42,6 +60,22 @@ export async function buildFromPlan(planPath: string, outDir: string): Promise<s
 
   const { planWithTiming } = synthesizePlanAudio(plan as any, pickSynthesizer(), join(outDir, "audio"), 0.9);
   execFileSync("ffmpeg", ["-y", "-i", join(outDir, "audio/vo.wav"), "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-ar", "48000", "-ac", "2", join(outDir, "audio/vo-norm.wav")], { stdio: "ignore" });
+
+  // Music bed + SFX → final mix (VO leads; music ducks under it).
+  const audioOut = join(outDir, "audio");
+  const { events, totalDuration } = sfxEventsFromPlan(planWithTiming as any);
+  const noMusic = process.env.ENABLEMENT_NO_MUSIC === "1";
+  const noSfx = process.env.ENABLEMENT_NO_SFX === "1";
+  const musicPath = noMusic ? null : resolveOrSynthMusic(join(process.cwd(), "brand/audio"), join(audioOut, "music-bed.wav"), totalDuration);
+  let sfxPath: string | null = null;
+  if (!noSfx) { sfxPath = join(audioOut, "sfx.wav"); buildSfxTrack(events, totalDuration, audioOut, sfxPath); }
+  const gainEnv = process.env.ENABLEMENT_MUSIC_GAIN_DB;
+  mixFinalAudio({
+    voPath: join(audioOut, "vo-norm.wav"),
+    musicPath, sfxPath, totalDurationSec: totalDuration, workDir: audioOut,
+    outPath: join(audioOut, "final.wav"),
+    musicGainDb: gainEnv ? Number(gainEnv) : undefined,
+  });
 
   // captions (optional — skip if transcribe unavailable)
   let captionHtml = "";
@@ -59,7 +93,7 @@ export async function buildFromPlan(planPath: string, outDir: string): Promise<s
     captionHtml = cues.map((c) => `    <div class="cap" data-s="${c.start}" data-e="${c.end}">${c.words.map((w) => `<span class="capw" data-t="${w.start}">${esc(w.text)}</span>`).join(" ")}</div>`).join("\n");
   } catch { captionHtml = ""; }
 
-  buildCompositionV2(planWithTiming as any, tokens, outDir, { audioRelPath: "audio/vo-norm.wav", captionHtml });
+  buildCompositionV2(planWithTiming as any, tokens, outDir, { audioRelPath: "audio/final.wav", captionHtml });
   render(outDir, "renders/video.mp4");
 
   const qa = runGate(plan as any, tokens, outDir);
