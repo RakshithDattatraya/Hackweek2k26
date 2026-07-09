@@ -24,7 +24,7 @@ test("buildOnePager writes HTML with an embedded hero still from the video", () 
   if (resolveChrome()) { expect(r.pdfPath).not.toBeNull(); expect(existsSync(r.pdfPath!)).toBe(true); }
   else { expect(r.pdfPath).toBeNull(); }
   rmSync(dir, { recursive: true, force: true });
-});
+}, 60000); // ffmpeg synth + Chrome PDF render exceed bun's 5s default
 
 test("buildOnePager still emits HTML when no video is given (no hero block)", () => {
   const dir = join(process.cwd(), "out/test-onepager2"); mkdirSync(dir, { recursive: true });
@@ -33,4 +33,4 @@ test("buildOnePager still emits HTML when no video is given (no hero block)", ()
   expect(html).toContain("Test Feature");
   expect(html).not.toContain("data:image/png;base64,");
   rmSync(dir, { recursive: true, force: true });
-});
+}, 30000);
