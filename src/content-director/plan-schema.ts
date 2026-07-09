@@ -89,9 +89,18 @@ export const CustomSceneSchema = z.object({
   transitionOverlap: z.number().nonnegative().optional(),
 });
 
+export const ZoomKeyframeSchema = z.object({
+  at: z.number().nonnegative(),
+  scale: z.number().min(1),
+  x: z.number().min(0).max(1).optional(),
+  y: z.number().min(0).max(1).optional(),
+  ease: z.enum(["linear", "smooth"]).optional(),
+});
+export type ZoomKeyframe = z.infer<typeof ZoomKeyframeSchema>;
+
 export const FootageSceneSchema = z.object({
   id: z.string().min(1).regex(/^[a-zA-Z0-9_-]+$/, "id must be alphanumeric, underscore, or hyphen"),
-  footage: z.object({ narration: z.string().min(1), clipPath: z.string().optional() }),
+  footage: z.object({ narration: z.string().min(1), clipPath: z.string().optional(), zoom: z.array(ZoomKeyframeSchema).optional() }),
   duration: z.number().positive().optional(),
   transitionOut: z.string().optional(),
   transitionOverlap: z.number().nonnegative().optional(),
