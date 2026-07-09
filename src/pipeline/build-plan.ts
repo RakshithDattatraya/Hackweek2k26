@@ -11,6 +11,7 @@ import { buildCompositionV2 } from "../compose/build-composition-v2";
 import { render } from "../render/render";
 import { runGate } from "../qa/gate";
 import { resolveOrSynthMusic } from "../audio/music";
+import { selectLibraryTrack } from "../audio/library";
 import { buildSfxTrack, type SfxEvent } from "../audio/sfx";
 import { mixFinalAudio } from "../audio/mix";
 
@@ -66,7 +67,8 @@ export async function buildFromPlan(planPath: string, outDir: string): Promise<s
   const { events, totalDuration } = sfxEventsFromPlan(planWithTiming as any);
   const noMusic = process.env.ENABLEMENT_NO_MUSIC === "1";
   const noSfx = process.env.ENABLEMENT_NO_SFX === "1";
-  const musicPath = noMusic ? null : resolveOrSynthMusic(join(process.cwd(), "brand/audio"), join(audioOut, "music-bed.wav"), totalDuration);
+  const libTrack = selectLibraryTrack((plan as any).music_mood, join(process.cwd(), "brand/audio/library"));
+  const musicPath = noMusic ? null : (libTrack ?? resolveOrSynthMusic(join(process.cwd(), "brand/audio"), join(audioOut, "music-bed.wav"), totalDuration));
   let sfxPath: string | null = null;
   if (!noSfx) { sfxPath = join(audioOut, "sfx.wav"); buildSfxTrack(events, totalDuration, audioOut, sfxPath); }
   const gainEnv = process.env.ENABLEMENT_MUSIC_GAIN_DB;

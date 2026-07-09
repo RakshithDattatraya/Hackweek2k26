@@ -92,6 +92,7 @@ export const CustomSceneSchema = z.object({
 export const VideoPlanV3Schema = z.object({
   feature_name: z.string().min(1), value_prop: z.string(), persona: z.string(),
   when_to_use: z.string(), talking_points: z.array(z.string()).min(1),
+  music_mood: z.string().optional(),
   scenes: z.array(z.union([SceneV2Schema, CustomSceneSchema])).min(1),
   youtube_metadata: z.object({ title: z.string(), description: z.string(),
     tags: z.array(z.string()), chapters: z.array(z.object({ title: z.string(), start: z.number().nonnegative() })) }),

@@ -32,6 +32,11 @@ the M2 starter kit via `{ id, component, props, narration }`).
   available. FORBIDDEN (breaks deterministic render, fails QA lint): `Date.now`, `Math.random`,
   `new Date(`, `fetch(`, `XMLHttpRequest`, `import(`.
 - `narration`: 1-3 spoken sentences; drives the scene's duration.
+- `music_mood` (optional, plan-level): set the video's musical tone so the pipeline
+  auto-selects a matching bed from `brand/audio/library/`. Allowed:
+  `uplifting | calm | energetic | corporate | serious`. Pick the one that fits the
+  video's energy (e.g. an upbeat pitch → `uplifting`). If the library is empty the
+  pipeline falls back to a synthesized pad automatically.
 
 ## Seam transitions (make it a film, not slides)
 Give most scenes an authored exit so scenes flow into each other instead of hard-cutting:
