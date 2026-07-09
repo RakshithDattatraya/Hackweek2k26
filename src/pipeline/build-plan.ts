@@ -6,11 +6,14 @@ import { validateScenePlan } from "../scenes/registry";
 import { loadBrandTokens } from "../brand/token-resolver";
 import { synthesizePlanAudio } from "../audio/assemble-audio";
 import { saySynthesizer, type SpeechSynthesizer } from "../audio/tts";
+import { elevenlabsSynthesizer, hasElevenLabs } from "../audio/elevenlabs";
 import { buildCompositionV2 } from "../compose/build-composition-v2";
 import { render } from "../render/render";
 import { runGate } from "../qa/gate";
 
 export function pickSynthesizer(): SpeechSynthesizer {
+  // Prefer ElevenLabs (expressive, natural) when a key is available.
+  if (hasElevenLabs()) { console.log("Voice: ElevenLabs"); return elevenlabsSynthesizer; }
   try {
     const voices = execFileSync("say", ["-v", "?"]).toString();
     if (voices.includes("Ava (Premium)")) {

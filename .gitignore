@@ -3,3 +3,5 @@ out/
 *.aiff
 UiPath Brand Book V3.3.pdf
 .DS_Store
+.elevenlabs.key
+*.elevenlabs.key
