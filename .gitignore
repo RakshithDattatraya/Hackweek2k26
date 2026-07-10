@@ -5,3 +5,6 @@ UiPath Brand Book V3.3.pdf
 .DS_Store
 .elevenlabs.key
 *.elevenlabs.key
+
+# large raw screen recordings (keep demo-cut.mp4 which the plan uses)
+demo/clips/*.mov
