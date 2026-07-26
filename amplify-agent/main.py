@@ -159,22 +159,24 @@ def render(state: AgentState) -> dict:
 def store(state: AgentState) -> dict:
     # Persist the generated assets + metadata into the EnablementAsset entity.
     # A separate UiPath App reads these records to surface the assets.
+    # Data Service entities are tenant-scoped (auth is the isolation boundary); field
+    # names are alphanumeric camelCase (Data Service rejects underscores).
     sdk = _sdk()
-    ent = sdk.entities.retrieve_by_name(ENTITY, folder_key=FOLDER)
+    ent = sdk.entities.retrieve_by_name(ENTITY)
     a = state.artifacts
     record = {
-        "type": state.kind,
+        "assetType": state.kind,
         "title": state.plan.get("feature_name") or f"Release {state.plan.get('version', '')}",
-        "source_ref": state.source_url,
-        "custom_prompt": state.custom_prompt or "",
-        "video_url": a.get("video_url"),
-        "onepager_url": a.get("onepager_url"),
-        "digest_url": a.get("digest_url"),
-        "qa_status": "passed",
-        "claim_check_status": state.claim_status,
+        "sourceRef": state.source_url,
+        "customPrompt": state.custom_prompt or "",
+        "videoUrl": a.get("video_url"),
+        "onepagerUrl": a.get("onepager_url"),
+        "digestUrl": a.get("digest_url"),
+        "qaStatus": "passed",
+        "claimCheckStatus": state.claim_status,
     }
-    rec = sdk.entities.insert_record(ent.key, record)
-    return {"entity_id": getattr(rec, "id", "") or getattr(rec, "record_id", "")}
+    rec = sdk.entities.insert_record(ent.id, record)
+    return {"entity_id": str(getattr(rec, "id", "") or getattr(rec, "Id", "") or "")}
 
 
 # ---------- graph ----------
