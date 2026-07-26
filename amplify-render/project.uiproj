@@ -1,0 +1,6 @@
+{
+  "ProjectType": "Agent",
+  "Name": "amplify-render",
+  "Description": "Amplify render process \u2014 build enablement assets (bun pipeline) and upload to a Storage Bucket. Runs on a robot with the toolchain.",
+  "MainFile": null
+}

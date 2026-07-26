@@ -1,0 +1,11 @@
+[project]
+name = "amplify-render"
+version = "0.1.0"
+description = "Amplify render process — build enablement assets (bun pipeline) and upload to a Storage Bucket. Runs on a robot with the toolchain."
+authors = [{ name = "Rakshith Hegde", email = "rakshith.hegde@uipath.com" }]
+dependencies = [
+    "uipath>=2.13.0, <3",
+    "langgraph>=0.2",
+    "pydantic>=2",
+]
+requires-python = ">=3.11"

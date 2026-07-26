@@ -1,0 +1,82 @@
+{
+    "$schema": "https://cloud.uipath.com/draft/2024-12/entry-point",
+    "$id": "entry-points.json",
+    "entryPoints": [
+        {
+            "filePath": "amplify-render",
+            "uniqueId": "339435a0-2c96-40f3-9429-27a77d020624",
+            "type": "agent",
+            "input": {
+                "type": "object",
+                "properties": {
+                    "kind": {
+                        "description": "\"feature\" | \"release\"",
+                        "title": "Kind",
+                        "type": "string"
+                    },
+                    "plan": {
+                        "description": "Plan JSON as a string.",
+                        "title": "Plan",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "kind",
+                    "plan"
+                ]
+            },
+            "output": {
+                "type": "object",
+                "properties": {
+                    "video_url": {
+                        "type": "string"
+                    },
+                    "onepager_url": {
+                        "type": "string"
+                    },
+                    "digest_url": {
+                        "type": "string"
+                    }
+                },
+                "required": []
+            },
+            "graph": {
+                "nodes": [
+                    {
+                        "id": "__start__",
+                        "name": "__start__",
+                        "type": "__start__",
+                        "subgraph": null,
+                        "metadata": {}
+                    },
+                    {
+                        "id": "render",
+                        "name": "render",
+                        "type": "node",
+                        "subgraph": null,
+                        "metadata": {}
+                    },
+                    {
+                        "id": "__end__",
+                        "name": "__end__",
+                        "type": "__end__",
+                        "subgraph": null,
+                        "metadata": {}
+                    }
+                ],
+                "edges": [
+                    {
+                        "source": "__start__",
+                        "target": "render",
+                        "label": null
+                    },
+                    {
+                        "source": "render",
+                        "target": "__end__",
+                        "label": null
+                    }
+                ]
+            }
+        }
+    ]
+}

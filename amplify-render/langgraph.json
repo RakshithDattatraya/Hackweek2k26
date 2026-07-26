@@ -1,0 +1,6 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "amplify-render": "./render_agent.py:graph"
+  }
+}

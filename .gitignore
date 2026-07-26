@@ -25,3 +25,4 @@ amplify-render/.env
 
 # uipath build cache
 amplify-agent/__uipath/
+amplify-render/__uipath/
