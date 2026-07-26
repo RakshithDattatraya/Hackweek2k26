@@ -29,9 +29,10 @@ from langgraph.graph import StateGraph, START, END
 FOLDER = os.environ.get("AMPLIFY_FOLDER_PATH", "Shared")          # Orchestrator folder = isolation scope
 ENTITY = os.environ.get("AMPLIFY_ENTITY", "EnablementAsset")      # Data Service entity name
 RENDER_PROCESS = os.environ.get("AMPLIFY_RENDER_PROCESS", "amplify-render")
-LLM_MODEL = os.environ.get("AMPLIFY_LLM_MODEL", "anthropic.claude-sonnet-4-6")  # from `uipath list-models`
-# NOTE: the newest Claude ids (sonnet-5, opus-4.7/4.8) reject `temperature`, which this
-# SDK's gateway always sends -> 400. Use a model that accepts it (sonnet-4-6 / sonnet-4-5).
+LLM_MODEL = os.environ.get("AMPLIFY_LLM_MODEL", "anthropic.claude-opus-4-8")  # from `uipath list-models`
+# NOTE: we call Claude via UiPathChatAnthropicBedrock (LangChain, model-aware). The lower-level
+# sdk.llm.chat_completions always sends `temperature`, which opus-4.7/4.8 & sonnet-5 reject (400);
+# the LangChain class handles that, so the best models (opus-4-8) work.
 GH_ASSET = os.environ.get("AMPLIFY_GITHUB_ASSET", "")            # Orchestrator Asset (Secret) holding a GitHub PAT
 GH_CONN = os.environ.get("AMPLIFY_GITHUB_CONNECTION", "")         # or an Integration Service GitHub connection key
 JIRA_CONN = os.environ.get("AMPLIFY_JIRA_CONNECTION", "")
@@ -141,14 +142,15 @@ AUTHOR_SYS = {
 
 
 async def author(state: AgentState) -> dict:
+    # Claude via the AI Trust Layer (LangChain gateway class — model-aware, so opus-4-8 works).
+    from uipath_langchain.chat import UiPathChatAnthropicBedrock
+    from langchain_core.messages import SystemMessage, HumanMessage
     sys = AUTHOR_SYS[state.kind]
     steer = f"\n\nSteering (add emphasis only, do not override facts): {state.custom_prompt}" if state.custom_prompt else ""
     user = f"Source URL: {state.source_url}\n\nContext:\n{json.dumps(state.context)[:24000]}{steer}"
-    resp = await _sdk().llm.chat_completions(  # gateway is async
-        messages=[{"role": "system", "content": sys}, {"role": "user", "content": user}],
-        model=LLM_MODEL, max_tokens=4096,
-    )
-    text = resp.choices[0].message.content if hasattr(resp, "choices") else str(resp)
+    llm = UiPathChatAnthropicBedrock(model=LLM_MODEL, max_tokens=4096)
+    resp = await llm.ainvoke([SystemMessage(sys), HumanMessage(user)])
+    text = resp.content if isinstance(resp.content, str) else str(resp.content)
     obj = json.loads(re.search(r"\{.*\}", text, re.S).group(0))
     claim = obj.pop("claim_status", "reviewed")
     return {"plan": obj, "claim_status": claim}

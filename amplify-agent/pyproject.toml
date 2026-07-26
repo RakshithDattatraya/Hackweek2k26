@@ -3,7 +3,7 @@ name = "amplify-agent"
 version = "0.1.0"
 description = "Amplify — on merge/release, generate enablement assets and store them in a Data Service entity"
 dependencies = [
-    "uipath-langchain>=0.14.0, <0.15.0",
+    "uipath-langchain[bedrock]>=0.14.0, <0.15.0",
     "httpx>=0.27",
 ]
 requires-python = ">=3.11"
