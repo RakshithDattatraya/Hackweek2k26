@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { mkdtempSync, readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildRelease } from "./build-release";
@@ -17,6 +17,8 @@ test("writes one-pager html + both digests", () => {
   expect(readFileSync(r.onepagerHtml, "utf8")).toContain("v2604.195.0");
   expect(readFileSync(r.slackPath, "utf8")).toContain("Public apps");
   expect(readFileSync(r.confluencePath, "utf8")).toContain("Highlights");
+  // brand logo copied next to the page so its relative <img src> resolves
+  expect(existsSync(join(dir, "assets/uipath-logo-orange.png"))).toBe(true);
 }, 30000); // Chrome PDF render exceeds bun's 5s default (see build-onepager.test.ts)
 
 test("rejects an invalid plan", () => {
