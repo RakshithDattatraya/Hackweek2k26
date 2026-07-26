@@ -76,11 +76,17 @@ def classify(url: str) -> str:
 
 
 def _github_token() -> str:
-    # Prefer an Orchestrator Asset (Secret) holding a PAT; else an Integration Service
-    # connection token; else unauthenticated (public repos only). The secret is read at
-    # runtime and never stored in code (secret-leakage).
+    # Prefer an Orchestrator Asset holding a PAT (Credential/Secret masked, or Text), else an
+    # Integration Service connection token, else unauthenticated (public repos only). The
+    # secret is read at runtime and never stored in code (secret-leakage).
     if GH_ASSET:
-        return _sdk().assets.retrieve_secret(GH_ASSET, folder_path=FOLDER) or ""
+        a = _sdk().assets
+        return (
+            a.retrieve_secret(GH_ASSET, folder_path=FOLDER)
+            or a.retrieve_credential(GH_ASSET, folder_path=FOLDER)
+            or getattr(a.retrieve(GH_ASSET, folder_path=FOLDER), "string_value", None)
+            or ""
+        )
     if GH_CONN:
         tok = _sdk().connections.retrieve_token(GH_CONN)
         return getattr(tok, "access_token", None) or getattr(tok, "value", "") or ""
