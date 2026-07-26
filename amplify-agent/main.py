@@ -33,7 +33,11 @@ LLM_MODEL = os.environ.get("AMPLIFY_LLM_MODEL", "anthropic.claude-opus-4-8")  # 
 # NOTE: we call Claude via UiPathChatAnthropicBedrock (LangChain, model-aware). The lower-level
 # sdk.llm.chat_completions always sends `temperature`, which opus-4.7/4.8 & sonnet-5 reject (400);
 # the LangChain class handles that, so the best models (opus-4-8) work.
-GH_ASSET = os.environ.get("AMPLIFY_GITHUB_ASSET", "")            # Orchestrator Asset (Secret) holding a GitHub PAT
+GH_ASSET = os.environ.get("AMPLIFY_GITHUB_ASSET", "AmplifyGitHubPat")  # Orchestrator Asset holding a GitHub PAT.
+# Default to the asset name so the DEPLOYED agent authenticates out-of-the-box: the tenant runtime
+# does not ship our local .env (it's a secret), so absent this default GH_ASSET would be "" and
+# every private-repo fetch would 404 (GitHub returns 404, not 403, when unauthenticated). Set to ""
+# via env to force unauthenticated/public-only.
 GH_CONN = os.environ.get("AMPLIFY_GITHUB_CONNECTION", "")         # or an Integration Service GitHub connection key
 JIRA_CONN = os.environ.get("AMPLIFY_JIRA_CONNECTION", "")
 
