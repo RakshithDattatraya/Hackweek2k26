@@ -29,7 +29,9 @@ from langgraph.graph import StateGraph, START, END
 FOLDER = os.environ.get("AMPLIFY_FOLDER_PATH", "Shared")          # Orchestrator folder = isolation scope
 ENTITY = os.environ.get("AMPLIFY_ENTITY", "EnablementAsset")      # Data Service entity name
 RENDER_PROCESS = os.environ.get("AMPLIFY_RENDER_PROCESS", "amplify-render")
-LLM_MODEL = os.environ.get("AMPLIFY_LLM_MODEL", "anthropic.claude-sonnet-4-5")  # from `uipath list-models`
+LLM_MODEL = os.environ.get("AMPLIFY_LLM_MODEL", "anthropic.claude-sonnet-4-6")  # from `uipath list-models`
+# NOTE: the newest Claude ids (sonnet-5, opus-4.7/4.8) reject `temperature`, which this
+# SDK's gateway always sends -> 400. Use a model that accepts it (sonnet-4-6 / sonnet-4-5).
 GH_CONN = os.environ.get("AMPLIFY_GITHUB_CONNECTION", "")         # Integration Service connection keys
 JIRA_CONN = os.environ.get("AMPLIFY_JIRA_CONNECTION", "")
 
@@ -125,11 +127,11 @@ AUTHOR_SYS = {
 }
 
 
-def author(state: AgentState) -> dict:
+async def author(state: AgentState) -> dict:
     sys = AUTHOR_SYS[state.kind]
     steer = f"\n\nSteering (add emphasis only, do not override facts): {state.custom_prompt}" if state.custom_prompt else ""
     user = f"Source URL: {state.source_url}\n\nContext:\n{json.dumps(state.context)[:24000]}{steer}"
-    resp = _sdk().llm.chat_completions(
+    resp = await _sdk().llm.chat_completions(  # gateway is async
         messages=[{"role": "system", "content": sys}, {"role": "user", "content": user}],
         model=LLM_MODEL, max_tokens=4096,
     )

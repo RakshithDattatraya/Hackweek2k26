@@ -19,6 +19,10 @@ Prereqs: `uv` (or pip), and the UiPath org you created.
 
 1. **Install:** `uv sync` (or `pip install -e .`) in this folder.
 2. **Auth (opens a browser):** `uipath auth` → sign in to your org/tenant.
+   - Environment: the auth domain is `UIPATH_URL` (if set), else the flag `--cloud` (default)
+     / `--staging` / `--alpha`. For a **staging** org: `uipath auth --staging` (or `--alpha`).
+     Foolproof: `UIPATH_URL="https://staging.uipath.com/<org>/<tenant>" uipath auth`.
+     No code change needed — the SDK follows the env you authed into.
 3. **Pick the LLM:** `uipath list-models` → choose a Claude id (e.g. `anthropic.claude-sonnet-4-5`)
    → set `AMPLIFY_LLM_MODEL` in `.env`.
 4. **Create the entity** in Data Service — name it `EnablementAsset` with text fields:
