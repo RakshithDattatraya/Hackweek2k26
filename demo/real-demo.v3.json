@@ -11,6 +11,14 @@
     "Claim-check gate: it won't ship a claim the code doesn't support",
     "Human approves, then it publishes to YouTube, the enablement hub, and Slack"
   ],
+  "objections": [
+    { "q": "Won’t an auto-generated video feel generic?", "a": "No. Two directors author it — a content director writes a bespoke story and sales angle from this feature’s PR + Jira, and a camera director adds cinematic auto-zoom over the real demo. It’s this feature’s story, not a template tour." },
+    { "q": "What if it invents or overstates a claim?", "a": "A claim-check gate compares every narration line to the actual diff and commits, and flags anything the code doesn’t support for a human. It will not ship a claim the source can’t back." },
+    { "q": "Does it publish to customers automatically?", "a": "Never. A merge triggers capture, not publish. The draft is routed to a human who approves it in Action Center before anything customer-facing goes out." },
+    { "q": "Is this more work for engineers?", "a": "Zero extra effort. It runs as a pipeline step right after deploy and drafts from artifacts engineers already produce — the PR and the linked Jira. No editor, no designer, no new tool to maintain." },
+    { "q": "We already have enablement and marketing — why this?", "a": "It doesn’t replace them; it hands them a premium, on-brand first draft at the moment context is richest, so they curate in minutes instead of reconstructing weeks later." },
+    { "q": "Will it work for my product?", "a": "Browser features get full auto-zoom capture; desktop or gated features fall back to a short engineer-recorded clip. Runs natively on UiPath’s agentic platform, and the renderer is Apache-2.0 — no per-render fees." }
+  ],
   "music_mood": "uplifting",
   "scenes": [
     {
@@ -228,10 +236,10 @@
     },
     {
       "id": "meta",
-      "html": "<div style=\"width:100%;display:flex;flex-direction:column;align-items:center;text-align:center\"><div class='eb' style=\"font-family:var(--uip-font-body);text-transform:uppercase;letter-spacing:.24em;font-weight:700;font-size:24px;color:var(--uip-orange);margin-bottom:26px\">One more thing</div><div class='hl' style=\"font-family:var(--uip-font-head);font-weight:900;font-size:100px;letter-spacing:-0.05em;color:var(--uip-white);line-height:1.0\"><span class='w' style=\"display:inline-block\">This</span> <span class='w' style=\"display:inline-block\">video?</span> <span class='w' style=\"display:inline-block\">Amplify</span> <span class='w' style=\"display:inline-block;color:var(--uip-orange)\">made it.</span></div><div class='chips' style=\"display:flex;gap:18px;margin-top:44px\"><span class='chip'>the script</span><span class='chip'>the design</span><span class='chip'>the voice</span><span class='chip'>the music</span></div><p class='sub' style=\"font-family:var(--uip-font-body);font-size:34px;color:var(--uip-white);opacity:.78;margin-top:38px\">No editor. No designer. From one prompt.</p></div>",
+      "html": "<div style=\"width:100%;display:flex;flex-direction:column;align-items:center;text-align:center\"><div class='eb' style=\"font-family:var(--uip-font-body);text-transform:uppercase;letter-spacing:.24em;font-weight:700;font-size:24px;color:var(--uip-orange);margin-bottom:26px\">One more thing</div><div class='hl' style=\"font-family:var(--uip-font-head);font-weight:900;font-size:100px;letter-spacing:-0.05em;color:var(--uip-white);line-height:1.0\"><span class='w' style=\"display:inline-block\">This</span> <span class='w' style=\"display:inline-block\">video?</span> <span class='w' style=\"display:inline-block\">Amplify</span> <span class='w' style=\"display:inline-block;color:var(--uip-orange)\">made it.</span></div><div class='chips' style=\"display:flex;gap:18px;margin-top:44px\"><span class='chip'>the script</span><span class='chip'>the design</span><span class='chip'>the voice</span><span class='chip'>the music</span></div><p class='sub' style=\"font-family:var(--uip-font-body);font-size:34px;color:var(--uip-white);opacity:.78;margin-top:38px\">No editor. No designer. From a PR and a Jira ticket.</p></div>",
       "css": ".w{display:inline-block} .chip{font-family:var(--uip-font-head);font-weight:600;font-size:30px;color:var(--uip-white);background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.16);border-radius:999px;padding:16px 30px}",
       "motionScript": "tl.from(root.querySelectorAll('.hl .w'),{autoAlpha:0,y:60,rotateX:-70,scale:0.8,duration:0.55,stagger:0.08,ease:'back.out(1.7)'},start+0.3);tl.from(root.querySelector('.eb'),{autoAlpha:0,duration:0.4},start+0.15);tl.from(root.querySelectorAll('.chip'),{autoAlpha:0,scale:0,duration:0.45,stagger:0.14,ease:'back.out(2)'},start+1.5);tl.from(root.querySelector('.sub'),{autoAlpha:0,y:20,duration:0.5},start+2.3);tl.to(root.querySelector('.hl span:last-child'),{scale:1.08,duration:0.6,ease:'sine.inOut',repeat:3,yoyo:true},start+2.5);",
-      "narration": "Oh — and this video you're watching? No editor. No designer. Amplify wrote it, designed it, scored it, and voiced it. From a single prompt.",
+      "narration": "Oh — and this video you're watching? No editor. No designer. Amplify wrote it, designed it, scored it, and voiced it — from a pull request and a Jira ticket.",
       "transitionOut": "tl.to(root,{autoAlpha:0,scale:1.1,duration:0.6,ease:\"power2.in\"},at)",
       "transitionOverlap": 0.6
     },
