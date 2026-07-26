@@ -11,14 +11,19 @@ export function buildRelease(planInput: ReleasePlan, outDir: string) {
   const plan = validateReleasePlan(planInput);
   outDir = resolve(outDir);
   mkdirSync(outDir, { recursive: true });
-  // Copy the brand logo next to the page so its relative <img src> resolves
-  // (matches the feature one-pager in build-onepager.ts).
+  // Embed the brand logo inline as a data-URI so the page is fully self-contained
+  // (the logo can't break when the HTML is moved or opened without an assets folder).
+  // Also copy the file into assets/ as a convenience for anyone editing the HTML.
   mkdirSync(join(outDir, "assets"), { recursive: true });
   const logoSrc = join(process.cwd(), "brand/logos/uipath-logo-orange.png");
-  if (existsSync(logoSrc)) execFileSync("cp", [logoSrc, join(outDir, "assets/uipath-logo-orange.png")]);
+  let logoDataUri: string | undefined;
+  if (existsSync(logoSrc)) {
+    execFileSync("cp", [logoSrc, join(outDir, "assets/uipath-logo-orange.png")]);
+    logoDataUri = `data:image/png;base64,${readFileSync(logoSrc).toString("base64")}`;
+  }
   const t = loadBrandTokens();
   const onepagerHtml = join(outDir, "onepager.html");
-  writeFileSync(onepagerHtml, renderReleaseOnePagerHtml(plan, t, { notesUrl: plan.notes_url }));
+  writeFileSync(onepagerHtml, renderReleaseOnePagerHtml(plan, t, { logoDataUri, notesUrl: plan.notes_url }));
   const pdfCand = join(outDir, "onepager.pdf");
   const onepagerPdf = htmlToPdf(onepagerHtml, pdfCand) ? pdfCand : null;
   const digest = buildDigest(plan);

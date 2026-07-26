@@ -13,6 +13,7 @@ export const ReleasePlanSchema = z.object({
   release_name: z.string().min(1),
   version: z.string().min(1),
   theme: z.string().min(1),
+  at_a_glance: z.string().optional(),
   audience: z.literal("internal"),
   highlights: z.array(ReleaseHighlightSchema).min(1).max(8),
   long_tail: z.array(z.object({ title: z.string().min(1), source_pr: z.string().url() })).default([]),

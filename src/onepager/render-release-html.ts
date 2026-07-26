@@ -9,10 +9,15 @@ const GROUP_ORDER = ["New capabilities", "Improvements", "Fixes that matter"] as
 export function renderReleaseOnePagerHtml(
   plan: ReleasePlan,
   t: BrandTokens,
-  opts: { logoRelPath?: string; notesUrl?: string } = {},
+  opts: { logoDataUri?: string; logoRelPath?: string; notesUrl?: string } = {},
 ): string {
-  const logo = opts.logoRelPath ?? "assets/uipath-logo-orange.png";
+  // Prefer an inline data-URI so the page is fully self-contained (the logo can
+  // never break when the HTML is moved or opened without its assets folder).
+  const logo = opts.logoDataUri ?? opts.logoRelPath ?? "assets/uipath-logo-orange.png";
   const notesUrl = opts.notesUrl ?? plan.notes_url;
+  const glanceBlock = plan.at_a_glance
+    ? `<div class="glance">${escapeHtml(plan.at_a_glance)}</div>`
+    : "";
 
   const groupSections = GROUP_ORDER.map((group) => {
     const items = plan.highlights.filter((h) => h.group === group);
@@ -62,6 +67,7 @@ export function renderReleaseOnePagerHtml(
   .band .version{font-family:'${t.fontBody}';font-weight:600;font-size:12px;color:${t.teal};margin-left:auto;}
   .body{padding:17px 30px 6px;flex:1;display:flex;flex-direction:column;gap:11px;}
   .theme{font-family:'${t.fontHeadline}';font-weight:600;font-size:17px;line-height:1.24;color:#12202a;}
+  .glance{font-size:11.5px;font-weight:600;letter-spacing:.02em;color:${t.orange};margin-top:-4px;}
   .cols{display:flex;gap:16px;}
   .col{flex:1;background:#f4f6f7;border:1px solid #e3e8ea;border-left:4px solid ${t.teal};border-radius:10px;padding:11px 15px;}
   h3{font-family:'${t.fontBody}';font-weight:700;text-transform:uppercase;letter-spacing:.14em;font-size:11px;color:${t.teal};margin-bottom:6px;}
@@ -92,6 +98,7 @@ export function renderReleaseOnePagerHtml(
     </div>
     <div class="body">
       <div class="theme">${escapeHtml(plan.theme)}</div>
+      ${glanceBlock}
       <div class="cols">${groupSections}</div>
       ${longTailBlock}
       ${customerBlock}

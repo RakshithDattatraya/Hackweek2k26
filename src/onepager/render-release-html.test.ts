@@ -16,12 +16,26 @@ test("renders version, theme, highlights, and no video", () => {
   expect(h).toContain("Public apps");
   expect(h).toContain("New capabilities");
   expect(h).toContain("Lead with time-to-value.");
-  expect(h).not.toContain("Watch the");
-  expect(h).not.toContain("data:image/png");
+  expect(h).not.toContain("Watch the"); // no video CTA
 });
 
 test("escapes injected text", () => {
   const h = renderReleaseOnePagerHtml({ ...plan, theme: "<script>x</script>" }, t);
   expect(h).not.toContain("<script>x</script>");
   expect(h).toContain("&lt;script&gt;");
+});
+
+test("embeds the logo inline when a data-URI is supplied", () => {
+  const uri = "data:image/png;base64,AAAA";
+  const h = renderReleaseOnePagerHtml(plan, t, { logoDataUri: uri });
+  expect(h).toContain(`<img src="${uri}"`);
+  // without it, falls back to the relative asset path (no inline data)
+  expect(renderReleaseOnePagerHtml(plan, t)).toContain('src="assets/uipath-logo-orange.png"');
+});
+
+test("renders the optional at-a-glance line when present, omits it otherwise", () => {
+  const h = renderReleaseOnePagerHtml({ ...plan, at_a_glance: "89 features · 77 fixes" }, t);
+  expect(h).toContain("89 features · 77 fixes");
+  expect(h).toContain('class="glance"');
+  expect(renderReleaseOnePagerHtml(plan, t)).not.toContain('class="glance"');
 });
