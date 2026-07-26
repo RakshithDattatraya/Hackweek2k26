@@ -8,6 +8,7 @@ import { synthesizePlanAudio } from "../audio/assemble-audio";
 import { saySynthesizer, type SpeechSynthesizer } from "../audio/tts";
 import { elevenlabsSynthesizer, hasElevenLabs } from "../audio/elevenlabs";
 import { buildCompositionV2 } from "../compose/build-composition-v2";
+import { captionHtmlFromVo } from "../compose/caption-cues";
 import { render } from "../render/render";
 import { runGate } from "../qa/gate";
 import { resolveOrSynthMusic } from "../audio/music";
@@ -51,8 +52,6 @@ export function sfxEventsFromPlan(plan: { scenes: { duration?: number }[] }): { 
   return { events, totalDuration: r2(bounds[bounds.length - 1]) };
 }
 
-type Word = { text: string; start: number; end: number };
-
 export async function buildFromPlan(planPath: string, outDir: string): Promise<string> {
   const plan = validatePlanV3(JSON.parse(readFileSync(planPath, "utf8")));
   validateScenePlan({ scenes: plan.scenes.filter((s: any) => !isCustomScene(s)) } as any);
@@ -83,20 +82,7 @@ export async function buildFromPlan(planPath: string, outDir: string): Promise<s
   });
 
   // captions (optional — skip if transcribe unavailable)
-  let captionHtml = "";
-  try {
-    const nodeBin = process.env.HYPERFRAMES_NODE_BIN;
-    const hfEnv = nodeBin ? { ...process.env, PATH: `${nodeBin}:${process.env.PATH}` } : process.env;
-    execFileSync("npx", ["-y", "hyperframes@latest", "transcribe", "audio/vo-norm.wav", "--json", "--optional"], { cwd: outDir, env: hfEnv, stdio: "ignore" });
-    const words = JSON.parse(readFileSync(join(outDir, "audio/transcript.json"), "utf8")) as Word[];
-    const esc = (s: string) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]!));
-    const cues: { words: Word[]; start: number; end: number }[] = [];
-    let cur: Word[] = [], len = 0;
-    const flush = () => { if (cur.length) { cues.push({ words: cur, start: cur[0].start, end: cur[cur.length - 1].end }); cur = []; } };
-    for (const w of words) { cur.push(w); len += w.text.length + 1; if (len >= 42 || cur.length >= 8 || /[.?!]$/.test(w.text.trim())) { flush(); len = 0; } }
-    flush();
-    captionHtml = cues.map((c) => `    <div class="cap" data-s="${c.start}" data-e="${c.end}">${c.words.map((w) => `<span class="capw" data-t="${w.start}">${esc(w.text)}</span>`).join(" ")}</div>`).join("\n");
-  } catch { captionHtml = ""; }
+  const captionHtml = captionHtmlFromVo(outDir);
 
   buildCompositionV2(planWithTiming as any, tokens, outDir, { audioRelPath: "audio/final.wav", captionHtml });
   render(outDir, "renders/video.mp4");

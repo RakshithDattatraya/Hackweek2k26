@@ -34,9 +34,20 @@ test("escapes injected plan text", () => {
   expect(h).toContain("&lt;script&gt;");
 });
 
-test("hero block: omitted without data uri, present with it", () => {
-  expect(renderOnePagerHtml(plan, t)).not.toContain('<img src="data:image/png');
+test("no video embed: hero still/CTA never rendered, even if passed", () => {
+  const plain = renderOnePagerHtml(plan, t);
+  expect(plain).not.toContain('<img src="data:image/png');
+  expect(plain).not.toContain("Watch the");
   const h = renderOnePagerHtml(plan, t, { heroDataUri: "data:image/png;base64,AAAA", videoUrl: "https://x/v" });
-  expect(h).toContain('<img src="data:image/png;base64,AAAA"');
-  expect(h).toContain("https://x/v");
+  expect(h).not.toContain('<img src="data:image/png;base64,AAAA"');
+  expect(h).not.toContain("https://x/v");
+});
+
+test("objections section: rendered as Q&A when present, omitted when absent", () => {
+  const withObj = renderOnePagerHtml(
+    { ...plan, objections: [{ q: "Is it safe?", a: "Yes — human approves." }] } as any, t);
+  expect(withObj).toContain("Objections, answered");
+  expect(withObj).toContain("Is it safe?");
+  expect(withObj).toContain("Yes — human approves.");
+  expect(renderOnePagerHtml(plan, t)).not.toContain("Objections, answered");
 });

@@ -12,7 +12,7 @@ const plan: any = {
   scenes: [], youtube_metadata: { title: "", description: "", tags: [], chapters: [] },
 };
 
-test("buildOnePager writes HTML with an embedded hero still from the video", () => {
+test("buildOnePager renders HTML+PDF and never embeds a video hero, even with a videoPath", () => {
   const dir = join(process.cwd(), "out/test-onepager"); mkdirSync(dir, { recursive: true });
   const vid = join(dir, "v.mp4");
   execFileSync("ffmpeg", ["-y", "-f", "lavfi", "-i", "testsrc=size=640x360:rate=10", "-t", "2", "-pix_fmt", "yuv420p", vid], { stdio: "ignore" });
@@ -20,7 +20,8 @@ test("buildOnePager writes HTML with an embedded hero still from the video", () 
   expect(existsSync(r.htmlPath)).toBe(true);
   const html = readFileSync(r.htmlPath, "utf8");
   expect(html).toContain("Test Feature");
-  expect(html).toContain("data:image/png;base64,");
+  expect(html).not.toContain("data:image/png;base64,"); // no video embed
+  expect(html).not.toContain("Watch the");
   if (resolveChrome()) { expect(r.pdfPath).not.toBeNull(); expect(existsSync(r.pdfPath!)).toBe(true); }
   else { expect(r.pdfPath).toBeNull(); }
   rmSync(dir, { recursive: true, force: true });

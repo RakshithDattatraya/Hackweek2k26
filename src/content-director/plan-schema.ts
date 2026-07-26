@@ -114,6 +114,8 @@ export function isFootageScene(s: unknown): s is FootageScene {
 export const VideoPlanV3Schema = z.object({
   feature_name: z.string().min(1), value_prop: z.string(), persona: z.string(),
   when_to_use: z.string(), talking_points: z.array(z.string()).min(1),
+  // Optional sales objection-handling for the one-pager ("doubts, answered").
+  objections: z.array(z.object({ q: z.string(), a: z.string() })).optional(),
   music_mood: z.string().optional(),
   scenes: z.array(z.union([FootageSceneSchema, CustomSceneSchema, SceneV2Schema])).min(1),
   youtube_metadata: z.object({ title: z.string(), description: z.string(),

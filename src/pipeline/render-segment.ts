@@ -5,6 +5,7 @@ import { validateScenePlan } from "../scenes/registry";
 import { isCustomScene, isFootageScene } from "../content-director/plan-schema";
 import { synthesizePlanAudio } from "../audio/assemble-audio";
 import { buildCompositionV2 } from "../compose/build-composition-v2";
+import { captionHtmlFromVo } from "../compose/caption-cues";
 import { render } from "../render/render";
 import { loadBrandTokens } from "../brand/token-resolver";
 import { pickSynthesizer } from "./build-plan";
@@ -28,7 +29,8 @@ export function renderSegment(scenes: any[], outDir: string): { videoPath: strin
   const { planWithTiming } = synthesizePlanAudio(plan as any, pickSynthesizer(), join(outDir, "audio"), 0.9);
   execFileSync("ffmpeg", ["-y", "-i", join(outDir, "audio/vo.wav"), "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-ar", "48000", "-ac", "2", join(outDir, "audio/vo-norm.wav")], { stdio: "ignore" });
 
-  buildCompositionV2(planWithTiming as any, tokens, outDir, { audioRelPath: "audio/vo-norm.wav", captionHtml: "" });
+  const captionHtml = captionHtmlFromVo(outDir);
+  buildCompositionV2(planWithTiming as any, tokens, outDir, { audioRelPath: "audio/vo-norm.wav", captionHtml });
   render(outDir, "renders/video.mp4");
 
   const timedScenes = planWithTiming.scenes as any[];
