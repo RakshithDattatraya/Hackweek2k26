@@ -32,7 +32,8 @@ RENDER_PROCESS = os.environ.get("AMPLIFY_RENDER_PROCESS", "amplify-render")
 LLM_MODEL = os.environ.get("AMPLIFY_LLM_MODEL", "anthropic.claude-sonnet-4-6")  # from `uipath list-models`
 # NOTE: the newest Claude ids (sonnet-5, opus-4.7/4.8) reject `temperature`, which this
 # SDK's gateway always sends -> 400. Use a model that accepts it (sonnet-4-6 / sonnet-4-5).
-GH_CONN = os.environ.get("AMPLIFY_GITHUB_CONNECTION", "")         # Integration Service connection keys
+GH_ASSET = os.environ.get("AMPLIFY_GITHUB_ASSET", "")            # Orchestrator Asset (Secret) holding a GitHub PAT
+GH_CONN = os.environ.get("AMPLIFY_GITHUB_CONNECTION", "")         # or an Integration Service GitHub connection key
 JIRA_CONN = os.environ.get("AMPLIFY_JIRA_CONNECTION", "")
 
 
@@ -74,12 +75,16 @@ def classify(url: str) -> str:
     return "unknown"
 
 
-def _conn_token(key: str) -> str:
-    if not key:
-        return ""
-    tok = _sdk().connections.retrieve_token(key)
-    # ConnectionToken exposes the bearer value; field name confirmed at deploy.
-    return getattr(tok, "access_token", None) or getattr(tok, "value", "") or ""
+def _github_token() -> str:
+    # Prefer an Orchestrator Asset (Secret) holding a PAT; else an Integration Service
+    # connection token; else unauthenticated (public repos only). The secret is read at
+    # runtime and never stored in code (secret-leakage).
+    if GH_ASSET:
+        return _sdk().assets.retrieve_secret(GH_ASSET, folder_path=FOLDER) or ""
+    if GH_CONN:
+        tok = _sdk().connections.retrieve_token(GH_CONN)
+        return getattr(tok, "access_token", None) or getattr(tok, "value", "") or ""
+    return ""
 
 
 # ---------- nodes ----------
@@ -87,7 +92,9 @@ def ingest(state: AgentState) -> dict:
     kind = classify(state.source_url)
     if kind == "unknown":
         raise ValueError(f"Unrecognized source URL: {state.source_url}")
-    gh = _conn_token(GH_CONN)
+    # classify() only accepts github.com PR/release URLs, and every request below targets
+    # api.github.com built from the parsed owner/repo — so there is no arbitrary-host fetch (SSRF).
+    gh = _github_token()
     headers = {"Authorization": f"Bearer {gh}", "Accept": "application/vnd.github+json"} if gh else {}
     ctx: dict[str, Any] = {"kind": kind, "source_url": state.source_url}
     if kind == "release":
