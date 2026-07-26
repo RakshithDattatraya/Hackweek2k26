@@ -29,6 +29,7 @@ from langgraph.graph import StateGraph, START, END
 FOLDER = os.environ.get("AMPLIFY_FOLDER_PATH", "Shared")          # Orchestrator folder = isolation scope
 ENTITY = os.environ.get("AMPLIFY_ENTITY", "EnablementAsset")      # Data Service entity name
 RENDER_PROCESS = os.environ.get("AMPLIFY_RENDER_PROCESS", "amplify-render")
+BUCKET = os.environ.get("AMPLIFY_BUCKET", "amplify-assets")       # Storage Bucket for generated assets
 LLM_MODEL = os.environ.get("AMPLIFY_LLM_MODEL", "anthropic.claude-opus-4-8")  # from `uipath list-models`
 # NOTE: we call Claude via UiPathChatAnthropicBedrock (LangChain, model-aware). The lower-level
 # sdk.llm.chat_completions always sends `temperature`, which opus-4.7/4.8 & sonnet-5 reject (400);
@@ -162,19 +163,36 @@ async def author(state: AgentState) -> dict:
     return {"plan": obj, "claim_status": claim}
 
 
+def _safe_seg(seg: str) -> str:
+    # allowlist for a bucket blob-path segment — no '/', no '..', no traversal (path-traversal).
+    seg = re.sub(r"[^A-Za-z0-9._-]", "-", seg or "").strip("-.") or "asset"
+    return seg[:80]
+
+
 def render(state: AgentState) -> dict:
-    # Invoke the TS render pipeline (published Orchestrator process), scoped to our folder.
-    job = _sdk().processes.invoke(
-        RENDER_PROCESS,
-        {"kind": state.kind, "plan": json.dumps(state.plan)},
-        folder_path=FOLDER,
-    )
-    out = getattr(job, "output_arguments", None) or getattr(job, "output", None) or {}
-    if isinstance(out, str):
-        try: out = json.loads(out)
-        except Exception: out = {}
-    # release -> onepager_url + digest_url ; feature -> video_url + onepager_url
-    return {"artifacts": {k: out.get(k) for k in ("video_url", "onepager_url", "digest_url") if out.get(k)}}
+    # RELEASE: render the one-pager + digest as HTML *in the serverless cloud* (pure strings,
+    # no Chrome/FFmpeg) and upload to the bucket directly — fully automatic, no robot, no invoke.
+    # FEATURE (video): needs the Node/Bun/Chrome/FFmpeg toolchain, which the serverless runtime
+    # lacks — it can't run here. Skip gracefully so the run still completes and stores the plan;
+    # the video renders via the TS pipeline on a machine that has the toolchain, same quality.
+    if state.kind != "release":
+        return {"artifacts": {"render_status": "skipped: video render needs the toolchain (not in serverless runtime)"}}
+    from release_render import render_release_onepager_html, build_digest_html
+    plan = state.plan
+    version = _safe_seg(str(plan.get("version") or plan.get("release_name") or "asset"))
+    prefix = f"amplify/{version}"  # fixed prefix + sanitized segment => no traversal
+    onepager_blob = f"{prefix}/onepager.html"
+    digest_blob = f"{prefix}/digest.html"
+    b = _sdk().buckets
+    b.upload(name=BUCKET, blob_file_path=onepager_blob, content=render_release_onepager_html(plan),
+             content_type="text/html", folder_path=FOLDER)
+    b.upload(name=BUCKET, blob_file_path=digest_blob, content=build_digest_html(plan),
+             content_type="text/html", folder_path=FOLDER)
+    return {"artifacts": {
+        "onepager_url": f"bucket://{BUCKET}/{onepager_blob}",
+        "digest_url": f"bucket://{BUCKET}/{digest_blob}",
+        "render_status": "rendered",
+    }}
 
 
 def store(state: AgentState) -> dict:
