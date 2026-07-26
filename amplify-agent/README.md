@@ -26,7 +26,7 @@ Prereqs: `uv` (or pip), and the UiPath org you created.
 3. **Pick the LLM:** `uipath list-models` → choose a Claude id (e.g. `anthropic.claude-sonnet-4-5`)
    → set `AMPLIFY_LLM_MODEL` in `.env`.
 4. **Create the entity** in Data Service — name it `EnablementAsset` with text fields:
-   `type, title, source_ref, custom_prompt, video_url, onepager_url, digest_url, qa_status, claim_check_status`.
+   `assetType, title, product, description, sourceRef, customPrompt, videoUrl, onepagerUrl, digestUrl, qaStatus, claimCheckStatus` (camelCase — Data Service rejects underscores).
 5. **Publish the renderer** as an Orchestrator process named `amplify-render` (set `AMPLIFY_RENDER_PROCESS`).
    It's a thin wrapper that runs the existing CLIs and returns artifact URLs:
    - release: `bun run src/pipeline/build-release.ts <plan.json>` → upload `out/release/*` to a Storage

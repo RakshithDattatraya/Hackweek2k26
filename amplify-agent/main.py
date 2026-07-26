@@ -125,7 +125,8 @@ def ingest(state: AgentState) -> dict:
 AUTHOR_SYS = {
     "release": (
         "You are Amplify's content director. From the GitHub release notes below, author a grounded, "
-        "internal-enablement ReleasePlan as strict JSON with keys: release_name, version, theme, at_a_glance, "
+        "internal-enablement ReleasePlan as strict JSON with keys: release_name, version, product "
+        "(the UiPath product/solution this release belongs to), theme, at_a_glance, "
         'audience ("internal"), highlights[] (title, value_line, persona, '
         'group in ["New capabilities","Improvements","Fixes that matter"], source_pr, jira_key?), '
         "long_tail[] (title, source_pr), what_to_tell_customers[], notes_url. "
@@ -134,8 +135,9 @@ AUTHOR_SYS = {
     ),
     "feature": (
         "You are Amplify's content director. From the PR (+ any linked Jira) below, author a grounded VideoPlan v3 "
-        "as strict JSON (feature_name, value_prop, persona, when_to_use, talking_points[], objections[], scenes[], "
-        "youtube_metadata). Ground every claim in the diff/notes; never invent. "
+        "as strict JSON (feature_name, product (the UiPath product this feature is in), value_prop, persona, "
+        "when_to_use, talking_points[], objections[], scenes[], youtube_metadata). "
+        "Ground every claim in the diff/notes; never invent. "
         'Add a top-level "claim_status" = "reviewed" or "flags".'
     ),
 }
@@ -182,6 +184,9 @@ def store(state: AgentState) -> dict:
     record = {
         "assetType": state.kind,
         "title": state.plan.get("feature_name") or f"Release {state.plan.get('version', '')}",
+        "product": state.plan.get("product") or state.plan.get("release_name") or "",
+        # short blurb shown under the heading (what the feature/release is about)
+        "description": state.plan.get("value_prop") or state.plan.get("theme") or state.plan.get("at_a_glance") or "",
         "sourceRef": state.source_url,
         "customPrompt": state.custom_prompt or "",
         "videoUrl": a.get("video_url"),
