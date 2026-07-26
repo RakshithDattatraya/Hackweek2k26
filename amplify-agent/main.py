@@ -175,23 +175,44 @@ def render(state: AgentState) -> dict:
     # FEATURE (video): needs the Node/Bun/Chrome/FFmpeg toolchain, which the serverless runtime
     # lacks — it can't run here. Skip gracefully so the run still completes and stores the plan;
     # the video renders via the TS pipeline on a machine that has the toolchain, same quality.
-    if state.kind != "release":
-        return {"artifacts": {"render_status": "skipped: video render needs the toolchain (not in serverless runtime)"}}
-    from release_render import render_release_onepager_html, build_digest_html
     plan = state.plan
-    version = _safe_seg(str(plan.get("version") or plan.get("release_name") or "asset"))
-    prefix = f"amplify/{version}"  # fixed prefix + sanitized segment => no traversal
-    onepager_blob = f"{prefix}/onepager.html"
-    digest_blob = f"{prefix}/digest.html"
-    b = _sdk().buckets
-    b.upload(name=BUCKET, blob_file_path=onepager_blob, content=render_release_onepager_html(plan),
-             content_type="text/html", folder_path=FOLDER)
-    b.upload(name=BUCKET, blob_file_path=digest_blob, content=build_digest_html(plan),
-             content_type="text/html", folder_path=FOLDER)
+    if state.kind == "release":
+        from release_render import render_release_onepager_html, build_digest_html
+        version = _safe_seg(str(plan.get("version") or plan.get("release_name") or "asset"))
+        prefix = f"amplify/{version}"  # fixed prefix + sanitized segment => no traversal
+        onepager_blob = f"{prefix}/onepager.html"
+        digest_blob = f"{prefix}/digest.html"
+        b = _sdk().buckets
+        b.upload(name=BUCKET, blob_file_path=onepager_blob, content=render_release_onepager_html(plan),
+                 content_type="text/html", folder_path=FOLDER)
+        b.upload(name=BUCKET, blob_file_path=digest_blob, content=build_digest_html(plan),
+                 content_type="text/html", folder_path=FOLDER)
+        return {"artifacts": {
+            "onepager_url": f"bucket://{BUCKET}/{onepager_blob}",
+            "digest_url": f"bucket://{BUCKET}/{digest_blob}",
+            "render_status": "rendered",
+        }}
+
+    # FEATURE (video): needs Chrome/FFmpeg. Start the amplify-render job on the UNATTENDED robot
+    # (Orchestrator dispatches server-initiated jobs only to unattended robots). The job runs async
+    # and uploads to deterministic bucket paths (same _safe scheme render.py uses) — store those now;
+    # the files land when the robot finishes. If the process isn't deployed yet, skip gracefully so
+    # the run still completes and stores the plan.
+    version = _safe_seg(str(plan.get("version") or plan.get("feature_name") or "asset"))
+    prefix = f"amplify/{version}"
+    try:
+        _sdk().processes.invoke(
+            RENDER_PROCESS,
+            {"kind": state.kind, "plan": json.dumps(plan)},
+            folder_path=FOLDER,
+        )
+    except Exception as e:
+        msg = (str(e).splitlines() or [""])[0][:200] or e.__class__.__name__
+        return {"artifacts": {"render_status": f"skipped: render process unavailable ({msg})"}}
     return {"artifacts": {
-        "onepager_url": f"bucket://{BUCKET}/{onepager_blob}",
-        "digest_url": f"bucket://{BUCKET}/{digest_blob}",
-        "render_status": "rendered",
+        "video_url": f"bucket://{BUCKET}/{prefix}/video.mp4",
+        "onepager_url": f"bucket://{BUCKET}/{prefix}/onepager.pdf",
+        "render_status": "rendering (unattended job started)",
     }}
 
 

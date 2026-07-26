@@ -7,18 +7,36 @@ Everything except this deployment is validated live: auth, ingest (private repo)
 > **Tokens expire ~1h.** Re-run `../.agentvenv/bin/uipath auth --staging` before any local step
 > if you see "Access token is expired". In production the runtime injects fresh tokens.
 
-## 1. Register the render runner (attended robot)
-`render.py` needs **Node 22+ / bun / headless Chrome / FFmpeg** — a stock robot lacks these, so
-use a machine that has them. Your dev machine already ran it successfully.
+## 0. Release vs video — where each renders
+- **Release** (one-pager + digest, HTML) renders **in the agent, in the serverless cloud**
+  (`release_render.py`) and uploads to the bucket directly. **No robot needed** — fully automatic.
+- **Video** (feature path) needs **Node 22+ / bun / headless Chrome / FFmpeg**, which the serverless
+  runtime lacks. So the agent starts the `amplify-render` job on a robot (steps 1–2). For the agent
+  to trigger it automatically, that robot must be **UNATTENDED** (Orchestrator dispatches
+  server-initiated jobs only to unattended robots). Attended is human-triggered — see §1b.
 
-1. Install **UiPath Assistant / Robot** on the runner and sign in to your **staging** org →
-   it registers under Orchestrator → Tenant → **Machines**.
-   - ⚠️ Classic attended robots run on **Windows** (+ the Assistant); macOS attended-robot support
-     is limited. If this Mac can't register, use a Windows box, or a **Linux unattended VM**, with the
-     toolchain — the same `render.py` runs on any of them.
-2. Orchestrator → **Shared** folder → assign the machine + a robot to the folder.
-3. On the runner: install the toolchain, `git clone` this repo, `bun install`, and set
+## 1. Register the render runner — UNATTENDED (automatic video)
+`render.py` needs **Node 22+ / bun / headless Chrome / FFmpeg**. Cross-platform **unattended** is
+reliable on **Linux/Windows**; macOS is best for *attended* only, so for automatic video use a
+small **Linux VM** (or Windows box) with the toolchain.
+
+1. **Prep the machine:** install the toolchain, `git clone` this repo, `bun install`, set
    `REPO_DIR=<repo path>` and `HYPERFRAMES_NODE_BIN="$(dirname "$(nvm which stable)")"`.
+2. **Machine template:** Orchestrator → Tenant → **Machines** → *Add machine template* → copy its **machine key**.
+3. **Unattended robot identity:** Tenant → **Manage Access** → create/assign a **robot account** (service
+   account) with an **Unattended** robot, or a user with Unattended robot + this machine template.
+   Requires an **Unattended runtime license** on the tenant.
+4. **Install the cross-platform Robot** on the machine and connect it to Orchestrator with the
+   **machine key** + Orchestrator URL (service/unattended mode, headless — not the Assistant).
+5. **Assign to the folder:** Orchestrator → **Shared** → assign the machine + unattended robot.
+
+### 1b. (Alternative) Register as ATTENDED — semi-automatic on your Mac
+Attended can render video too, but **you** launch it (the agent can't auto-trigger it):
+1. Install the **UiPath Assistant** on the Mac, sign in to the **staging** org → registers the
+   machine + an attended robot for **your user** (Tenant → Machines).
+2. Tenant → **Manage Access** → your user → **Robot setup → Attended**, assign a machine template.
+3. Publish `amplify-render` (step 2) into a **folder your user is a member of** → it appears in the
+   **Assistant** → click **Run** when a feature ships. (This is the manual path; not the agent's auto-invoke.)
 
 ## 2. Publish `render.py` as the `amplify-render` process
 From `amplify-render/` on the runner:

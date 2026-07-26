@@ -1,6 +1,6 @@
 [project]
 name = "amplify-agent"
-version = "0.1.2"
+version = "0.1.3"
 description = "Amplify — on merge/release, generate enablement assets and store them in a Data Service entity"
 authors = [{ name = "Rakshith Hegde", email = "rakshith.hegde@uipath.com" }]
 dependencies = [
