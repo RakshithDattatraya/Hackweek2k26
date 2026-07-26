@@ -16,3 +16,8 @@ Amplify-Submission/
 ~$*.pptx
 *.tmp
 amplify-agent/.env
+.uipath/
+**/.uipath/
+**/.auth.json
+**/.env
+.env
