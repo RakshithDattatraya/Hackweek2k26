@@ -224,7 +224,24 @@ def store(state: AgentState) -> dict:
     sdk = _sdk()
     ent = sdk.entities.retrieve_by_name(ENTITY)
     a = state.artifacts
-    record = {
+
+    # Clamp each value to its Data Service field length limit — the model's copy is free-form and
+    # can exceed a field's cap (Data Service 400s the whole insert otherwise). Non-destructive:
+    # works against the existing entity without a schema change. Limits mirror setup_entity.py.
+    LIMITS = {
+        "assetType": 40, "title": 400, "product": 200, "description": 200,
+        "sourceRef": 2000, "customPrompt": 2000,
+        "videoUrl": 2000, "onepagerUrl": 2000, "digestUrl": 2000,
+        "qaStatus": 40, "claimCheckStatus": 40,
+    }
+
+    def _clip(val, cap: int):
+        if not val:
+            return val
+        s = str(val)
+        return (s[: cap - 1] + "…") if len(s) > cap else s
+
+    raw = {
         "assetType": state.kind,
         "title": state.plan.get("feature_name") or f"Release {state.plan.get('version', '')}",
         "product": state.plan.get("product") or state.plan.get("release_name") or "",
@@ -238,6 +255,7 @@ def store(state: AgentState) -> dict:
         "qaStatus": "passed",
         "claimCheckStatus": state.claim_status,
     }
+    record = {k: _clip(v, LIMITS[k]) for k, v in raw.items()}
     rec = sdk.entities.insert_record(ent.id, record)
     return {"entity_id": str(getattr(rec, "id", "") or getattr(rec, "Id", "") or "")}
 
