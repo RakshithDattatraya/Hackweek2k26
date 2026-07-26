@@ -1,5 +1,20 @@
 from __future__ import annotations
+import re
 from .platform import Platform, Approval
+
+_RELEASE_URL_RE = re.compile(
+    r"github\.com/([^/]+)/([^/]+)/releases/tag/([^/?#]+)"
+)
+_RELEASE_URL_ANCHOR_RE = re.compile(
+    r"github\.com/([^/]+)/([^/]+)/releases#release-([^/?#]+)"
+)
+
+def _parse_release_url(url: str) -> tuple[str, str, str]:
+    """Mirrors the TS parseReleaseUrl in src/ingest/release-context.ts exactly."""
+    m = _RELEASE_URL_RE.search(url) or _RELEASE_URL_ANCHOR_RE.search(url)
+    if not m:
+        raise ValueError(f"Not a release URL: {url}")
+    return m.group(1), m.group(2), m.group(3)
 
 def run(source_url: str, custom_prompt, platform: Platform, brain, classify) -> dict:
     kind = classify(source_url)
@@ -10,9 +25,7 @@ def run(source_url: str, custom_prompt, platform: Platform, brain, classify) -> 
     if kind == "feature":
         ctx = {"pr": platform.get_pr(source_url)}
     else:
-        from urllib.parse import urlparse
-        parts = urlparse(source_url).path.strip("/").split("/")
-        owner, repo, tag = parts[0], parts[1], parts[-1]
+        owner, repo, tag = _parse_release_url(source_url)
         notes = platform.get_release(owner, repo, tag)
         ctx = {"release": {"owner": owner, "repo": repo, "tag": tag, "name": notes.name, "body": notes.body}}
 
@@ -30,7 +43,7 @@ def run(source_url: str, custom_prompt, platform: Platform, brain, classify) -> 
         "custom_prompt": custom_prompt or "",
         "video_url": out.get("video_url"),
         "onepager_url": out.get("onepager_url"),
-        "digest_url": None,
+        "digest_url": out.get("digest_url"),
         "qa_status": "passed",
         "claim_check_status": claim_status,
         "approval_status": "draft",
@@ -49,7 +62,7 @@ def run(source_url: str, custom_prompt, platform: Platform, brain, classify) -> 
 
     # 6. publish only on approval
     if approval.status == "approved":
-        payload = {"kind": kind, "urls": {k: record[k] for k in ("onepager_url", "video_url")}}
+        payload = {"kind": kind, "urls": {k: record[k] for k in ("onepager_url", "video_url", "digest_url")}}
         published = platform.publish(approval.channels, payload)
         record["channels_published"] = ",".join(published)
         platform.entity_update(entity_id, {"channels_published": record["channels_published"]})
