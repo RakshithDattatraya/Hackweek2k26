@@ -2,6 +2,7 @@
 name = "amplify-agent"
 version = "0.1.0"
 description = "Amplify — on merge/release, generate enablement assets and store them in a Data Service entity"
+authors = [{ name = "Rakshith Hegde", email = "rakshith.hegde@uipath.com" }]
 dependencies = [
     "uipath-langchain[bedrock]>=0.14.0, <0.15.0",
     "httpx>=0.27",

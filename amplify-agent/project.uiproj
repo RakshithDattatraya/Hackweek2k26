@@ -1,0 +1,6 @@
+{
+  "ProjectType": "Agent",
+  "Name": "amplify-agent",
+  "Description": "Amplify \u2014 on merge/release, generate enablement assets and store them in a Data Service entity",
+  "MainFile": null
+}

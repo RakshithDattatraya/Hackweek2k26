@@ -1,0 +1,128 @@
+{
+    "$schema": "https://cloud.uipath.com/draft/2024-12/entry-point",
+    "$id": "entry-points.json",
+    "entryPoints": [
+        {
+            "filePath": "amplify",
+            "uniqueId": "a24025d5-fbb3-426d-b9e6-0abdd3a06759",
+            "type": "agent",
+            "input": {
+                "type": "object",
+                "properties": {
+                    "source_url": {
+                        "description": "A GitHub PR/merge URL (feature) or release URL (release).",
+                        "title": "Source Url",
+                        "type": "string"
+                    },
+                    "custom_prompt": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "source_url"
+                ]
+            },
+            "output": {
+                "type": "object",
+                "properties": {
+                    "kind": {
+                        "title": "Kind",
+                        "type": "string"
+                    },
+                    "entity_id": {
+                        "title": "Entity Id",
+                        "type": "string"
+                    },
+                    "claim_status": {
+                        "title": "Claim Status",
+                        "type": "string"
+                    },
+                    "artifacts": {
+                        "additionalProperties": true,
+                        "title": "Artifacts",
+                        "type": "object"
+                    }
+                },
+                "required": [
+                    "kind",
+                    "entity_id",
+                    "claim_status",
+                    "artifacts"
+                ]
+            },
+            "graph": {
+                "nodes": [
+                    {
+                        "id": "__start__",
+                        "name": "__start__",
+                        "type": "__start__",
+                        "subgraph": null,
+                        "metadata": {}
+                    },
+                    {
+                        "id": "ingest",
+                        "name": "ingest",
+                        "type": "node",
+                        "subgraph": null,
+                        "metadata": {}
+                    },
+                    {
+                        "id": "author",
+                        "name": "author",
+                        "type": "node",
+                        "subgraph": null,
+                        "metadata": {}
+                    },
+                    {
+                        "id": "render",
+                        "name": "render",
+                        "type": "node",
+                        "subgraph": null,
+                        "metadata": {}
+                    },
+                    {
+                        "id": "store",
+                        "name": "store",
+                        "type": "node",
+                        "subgraph": null,
+                        "metadata": {}
+                    },
+                    {
+                        "id": "__end__",
+                        "name": "__end__",
+                        "type": "__end__",
+                        "subgraph": null,
+                        "metadata": {}
+                    }
+                ],
+                "edges": [
+                    {
+                        "source": "__start__",
+                        "target": "ingest",
+                        "label": null
+                    },
+                    {
+                        "source": "author",
+                        "target": "render",
+                        "label": null
+                    },
+                    {
+                        "source": "ingest",
+                        "target": "author",
+                        "label": null
+                    },
+                    {
+                        "source": "render",
+                        "target": "store",
+                        "label": null
+                    },
+                    {
+                        "source": "store",
+                        "target": "__end__",
+                        "label": null
+                    }
+                ]
+            }
+        }
+    ]
+}
