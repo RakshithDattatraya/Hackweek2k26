@@ -21,3 +21,4 @@ amplify-agent/.env
 **/.auth.json
 **/.env
 .env
+amplify-render/.env
