@@ -34,10 +34,10 @@ FIELDS = [
     _str("assetType", 40),          # feature | release
     _str("title", 400),
     _str("product", 200),           # the UiPath product/solution (e.g. "Amplify", "Verticals")
-    _text("description"),           # blurb shown under the heading (what it's about)
+    _str("description", 2000),      # blurb shown under the heading (STRING: MULTILINE_TEXT caps at 200)
     _str("spoc", 200),              # single point of contact — PR author / release author / Jira assignee
     _str("sourceRef"),              # PR / release URL
-    _text("customPrompt"),
+    _str("customPrompt", 2000),     # steering prompt (STRING so it isn't capped at the 200 multiline limit)
     _str("videoUrl"), _str("onepagerUrl"), _str("digestUrl"),  # bucket:// references
     _str("qaStatus", 40), _str("claimCheckStatus", 40),
     _bool("reviewStatus"),          # human-review gate — the agent always writes False; handled separately

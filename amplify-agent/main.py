@@ -234,8 +234,9 @@ def store(state: AgentState) -> dict:
     # Clamp each value to its Data Service field length limit — the model's copy is free-form and
     # can exceed a field's cap (Data Service 400s the whole insert otherwise). Non-destructive:
     # works against the existing entity without a schema change. Limits mirror setup_entity.py.
+    # Must match the field limits in setup_entity.py (Data Service 400s the insert on overflow).
     LIMITS = {
-        "assetType": 40, "title": 400, "product": 200, "description": 200, "spoc": 200,
+        "assetType": 40, "title": 400, "product": 200, "description": 2000, "spoc": 200,
         "sourceRef": 2000, "customPrompt": 2000,
         "videoUrl": 2000, "onepagerUrl": 2000, "digestUrl": 2000,
         "qaStatus": 40, "claimCheckStatus": 40,
