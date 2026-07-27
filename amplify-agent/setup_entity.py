@@ -26,37 +26,45 @@ def _text(name):
     return F(field_name=name, type=T.MULTILINE_TEXT, display_name=name)
 
 
+def _bool(name):
+    return F(field_name=name, type=T.BOOLEAN, display_name=name)
+
+
 FIELDS = [
     _str("assetType", 40),          # feature | release
     _str("title", 400),
-    _str("product", 200),           # the UiPath product/solution
+    _str("product", 200),           # the UiPath product/solution (e.g. "Amplify", "Verticals")
     _text("description"),           # blurb shown under the heading (what it's about)
+    _str("spoc", 200),              # single point of contact — PR author / release author / Jira assignee
     _str("sourceRef"),              # PR / release URL
     _text("customPrompt"),
     _str("videoUrl"), _str("onepagerUrl"), _str("digestUrl"),  # bucket:// references
     _str("qaStatus", 40), _str("claimCheckStatus", 40),
+    _bool("reviewStatus"),          # human-review gate — the agent always writes False; handled separately
 ]
 
 SEED = [
     {
         "assetType": "release",
         "title": "Release v2604.195.0",
-        "product": "UiPath Financial Services (FinS) Vertical Solution",
+        "product": "Verticals",
         "description": "HELOC goes end-to-end: a new address agent, agentic solution testing, per-customer config, and full observability.",
+        "spoc": "fins-release-owner",
         "sourceRef": "https://github.com/UiPath/fins-vertical-solution/releases/tag/v2604.195.0",
         "onepagerUrl": "bucket://amplify-assets/amplify/v2604.195.0/onepager.html",
         "digestUrl": "bucket://amplify-assets/amplify/v2604.195.0/digest.html",
-        "qaStatus": "passed", "claimCheckStatus": "reviewed",
+        "qaStatus": "passed", "claimCheckStatus": "reviewed", "reviewStatus": False,
     },
     {
         "assetType": "feature",
         "title": "Amplify — Feature to Enablement Pipeline",
-        "product": "UiPath — Amplify",
+        "product": "Amplify",
         "description": "On merge, auto-generate premium enablement (a ~2-min video + a matching one-pager) so sales knows what shipped, where it fits, and how to sell it.",
+        "spoc": "RakshithDattatraya",
         "sourceRef": "https://github.com/RakshithDattatraya/Hackweek2k26",
         "videoUrl": "bucket://amplify-assets/amplify/amplify-demo/video.mp4",
         "onepagerUrl": "bucket://amplify-assets/amplify/amplify-demo/onepager.pdf",
-        "qaStatus": "passed", "claimCheckStatus": "reviewed",
+        "qaStatus": "passed", "claimCheckStatus": "reviewed", "reviewStatus": False,
     },
 ]
 

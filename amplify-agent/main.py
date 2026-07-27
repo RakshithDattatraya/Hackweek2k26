@@ -116,14 +116,18 @@ def ingest(state: AgentState) -> dict:
         r = httpx.get(f"https://api.github.com/repos/{owner}/{repo}/releases/tags/{tag}", headers=headers, timeout=30)
         r.raise_for_status()
         d = r.json()
-        ctx.update(owner=owner, repo=repo, tag=tag, name=d.get("name"), body=d.get("body") or "")
+        # SPOC = who published the release (the GitHub login of the release author).
+        spoc = (d.get("author") or {}).get("login") or ""
+        ctx.update(owner=owner, repo=repo, tag=tag, name=d.get("name"), body=d.get("body") or "", spoc=spoc)
     else:  # feature
         m = re.search(r"github\.com/([^/]+)/([^/]+)/pull/(\d+)", state.source_url)
         owner, repo, num = m.group(1), m.group(2), m.group(3)
         r = httpx.get(f"https://api.github.com/repos/{owner}/{repo}/pulls/{num}", headers=headers, timeout=30)
         r.raise_for_status()
         pr = r.json()
-        ctx.update(owner=owner, repo=repo, number=int(num), title=pr.get("title"), body=pr.get("body") or "")
+        # SPOC = who opened the PR (or the assignee, if set) — the person with the most context.
+        spoc = ((pr.get("assignee") or {}).get("login")) or ((pr.get("user") or {}).get("login")) or ""
+        ctx.update(owner=owner, repo=repo, number=int(num), title=pr.get("title"), body=pr.get("body") or "", spoc=spoc)
     return {"kind": kind, "context": ctx}
 
 
@@ -131,7 +135,8 @@ AUTHOR_SYS = {
     "release": (
         "You are Amplify's content director. From the GitHub release notes below, author a grounded, "
         "internal-enablement ReleasePlan as strict JSON with keys: release_name, version, product "
-        "(the UiPath product/solution this release belongs to), theme, at_a_glance, "
+        "(the CONCISE UiPath product or product-line name this belongs to — e.g. \"Verticals\", "
+        "\"Amplify\", \"Maestro\" — not a long description), theme, at_a_glance, "
         'audience ("internal"), highlights[] (title, value_line, persona, '
         'group in ["New capabilities","Improvements","Fixes that matter"], source_pr, jira_key?), '
         "long_tail[] (title, source_pr), what_to_tell_customers[], notes_url. "
@@ -140,7 +145,8 @@ AUTHOR_SYS = {
     ),
     "feature": (
         "You are Amplify's content director. From the PR (+ any linked Jira) below, author a grounded VideoPlan v3 "
-        "as strict JSON (feature_name, product (the UiPath product this feature is in), value_prop, persona, "
+        "as strict JSON (feature_name, product (the CONCISE UiPath product or product-line name this feature is in "
+        "— e.g. \"Amplify\", \"Verticals\" — not a long description), value_prop, persona, "
         "when_to_use, talking_points[], objections[], scenes[], youtube_metadata). "
         "Ground every claim in the diff/notes; never invent. "
         'Add a top-level "claim_status" = "reviewed" or "flags".'
@@ -229,7 +235,7 @@ def store(state: AgentState) -> dict:
     # can exceed a field's cap (Data Service 400s the whole insert otherwise). Non-destructive:
     # works against the existing entity without a schema change. Limits mirror setup_entity.py.
     LIMITS = {
-        "assetType": 40, "title": 400, "product": 200, "description": 200,
+        "assetType": 40, "title": 400, "product": 200, "description": 200, "spoc": 200,
         "sourceRef": 2000, "customPrompt": 2000,
         "videoUrl": 2000, "onepagerUrl": 2000, "digestUrl": 2000,
         "qaStatus": 40, "claimCheckStatus": 40,
@@ -247,6 +253,8 @@ def store(state: AgentState) -> dict:
         "product": state.plan.get("product") or state.plan.get("release_name") or "",
         # short blurb shown under the heading (what the feature/release is about)
         "description": state.plan.get("value_prop") or state.plan.get("theme") or state.plan.get("at_a_glance") or "",
+        # single point of contact — captured deterministically from the PR/release author in ingest
+        "spoc": state.context.get("spoc") or "",
         "sourceRef": state.source_url,
         "customPrompt": state.custom_prompt or "",
         "videoUrl": a.get("video_url"),
@@ -256,6 +264,8 @@ def store(state: AgentState) -> dict:
         "claimCheckStatus": state.claim_status,
     }
     record = {k: _clip(v, LIMITS[k]) for k, v in raw.items()}
+    # Human-review gate: the agent always writes False on generation; reviewed separately.
+    record["reviewStatus"] = False
     rec = sdk.entities.insert_record(ent.id, record)
     return {"entity_id": str(getattr(rec, "id", "") or getattr(rec, "Id", "") or "")}
 
