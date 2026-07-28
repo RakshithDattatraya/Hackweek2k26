@@ -194,21 +194,43 @@ def _upload_bucket(sdk, local_path, blob: str) -> str:
     return f"bucket://{BUCKET}/{blob}"
 
 
+def _find_bun() -> str:
+    # Resolve bun robustly — an unattended robot's PATH is often minimal, so also honour an
+    # explicit AMPLIFY_BUN_BIN and the default ~/.bun/bin/bun install location.
+    import shutil
+    from pathlib import Path
+    cand = os.environ.get("AMPLIFY_BUN_BIN") or shutil.which("bun")
+    if not cand:
+        home = os.path.expanduser("~/.bun/bin/bun")
+        if Path(home).exists():
+            cand = home
+    return cand or ""
+
+
 def _render_video_locally(plan: dict, prefix: str) -> dict:
     # Option C: render the feature video IN-PROCESS via the TS pipeline — ONLY when this agent runs
-    # on a machine that has the toolchain (bun + Node/Chrome/FFmpeg) and the repo checked out at
-    # REPO_DIR. Returns {} (falsy) when the toolchain isn't present, so the caller falls back.
-    import shutil
+    # on a machine that has the toolchain (bun + Node/Chrome/FFmpeg) and the repo at REPO_DIR.
+    # Logs EXACTLY why it skips (visible in the job log) so a fallback-to-404 is diagnosable.
     import subprocess
     import tempfile
     from pathlib import Path
-    bun = shutil.which("bun")
-    if not REPO_DIR or not bun or not Path(REPO_DIR, "src/pipeline/build-plan.ts").exists():
+    if not REPO_DIR:
+        print("[amplify] in-process render skipped: REPO_DIR not set (agent is not on a toolchain machine)")
+        return {}
+    if not Path(REPO_DIR, "src/pipeline/build-plan.ts").exists():
+        print(f"[amplify] in-process render skipped: build-plan.ts not found under REPO_DIR={REPO_DIR!r}")
+        return {}
+    bun = _find_bun()
+    if not bun:
+        print("[amplify] in-process render skipped: 'bun' not found (set AMPLIFY_BUN_BIN or add bun to PATH)")
         return {}
     env = dict(os.environ)
+    path_parts = [os.path.dirname(bun)]
     node_bin = os.environ.get("HYPERFRAMES_NODE_BIN")
     if node_bin:
-        env["PATH"] = f"{node_bin}:{env.get('PATH', '')}"
+        path_parts.insert(0, node_bin)
+    env["PATH"] = ":".join(path_parts + [env.get("PATH", "")])
+    print(f"[amplify] rendering video in-process (bun={bun}, REPO_DIR={REPO_DIR})")
     with tempfile.TemporaryDirectory() as tmp:
         plan_path = os.path.join(tmp, "plan.json")
         Path(plan_path).write_text(json.dumps(plan))
@@ -222,6 +244,7 @@ def _render_video_locally(plan: dict, prefix: str) -> dict:
         out["video_url"] = _upload_bucket(sdk, vid, f"{prefix}/video.mp4")
     if op.exists():
         out["onepager_url"] = _upload_bucket(sdk, op, f"{prefix}/onepager.pdf")
+    print(f"[amplify] in-process render complete: {list(out) or 'no artifacts produced'}")
     return out
 
 
