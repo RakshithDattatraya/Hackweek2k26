@@ -31,6 +31,10 @@ ENTITY = os.environ.get("AMPLIFY_ENTITY", "EnablementAsset")      # Data Service
 RENDER_PROCESS = os.environ.get("AMPLIFY_RENDER_PROCESS", "amplify-render")
 BUCKET = os.environ.get("AMPLIFY_BUCKET", "amplify-assets")       # Storage Bucket for generated assets
 REPO_DIR = os.environ.get("REPO_DIR", "")                         # Option C: repo path on a toolchain machine → render video in-process
+# DRY-RUN: run the whole graph (ingest → author → render) and report success, but write NOTHING to
+# the Storage Bucket or the EnablementAsset entity. Default ON so a live demo run never appends a
+# half-finished row. Set AMPLIFY_DRY_RUN=false to enable real persistence.
+DRY_RUN = os.environ.get("AMPLIFY_DRY_RUN", "true").strip().lower() in ("1", "true", "yes", "on")
 LLM_MODEL = os.environ.get("AMPLIFY_LLM_MODEL", "anthropic.claude-opus-4-8")  # from `uipath list-models`
 # NOTE: we call Claude via UiPathChatAnthropicBedrock (LangChain, model-aware). The lower-level
 # sdk.llm.chat_completions always sends `temperature`, which opus-4.7/4.8 & sonnet-5 reject (400);
@@ -261,6 +265,11 @@ def render(state: AgentState) -> dict:
         prefix = f"amplify/{version}"  # fixed prefix + sanitized segment => no traversal
         onepager_blob = f"{prefix}/onepager.html"
         digest_blob = f"{prefix}/digest.html"
+        if DRY_RUN:
+            # Render in memory to prove it works, but do not upload.
+            render_release_onepager_html(plan); build_digest_html(plan)
+            print("[amplify] DRY-RUN — release rendered in memory, NOT uploaded to bucket")
+            return {"artifacts": {"render_status": "dry-run (rendered, not uploaded)"}}
         b = _sdk().buckets
         b.upload(name=BUCKET, blob_file_path=onepager_blob, content=render_release_onepager_html(plan),
                  content_type="text/html", folder_path=FOLDER)
@@ -279,6 +288,9 @@ def render(state: AgentState) -> dict:
     #  3) Else skip gracefully so the run still completes and stores the plan.
     version = _safe_seg(str(plan.get("version") or plan.get("feature_name") or "asset"))
     prefix = f"amplify/{version}"
+    if DRY_RUN:
+        print("[amplify] DRY-RUN — feature: skipping video render + all writes")
+        return {"artifacts": {"render_status": "dry-run (no render, no writes)"}}
     local = _render_video_locally(plan, prefix)
     if local:
         return {"artifacts": {**local, "render_status": "rendered (in-process)"}}
@@ -303,9 +315,13 @@ def store(state: AgentState) -> dict:
     # A separate UiPath App reads these records to surface the assets.
     # Data Service entities are tenant-scoped (auth is the isolation boundary); field
     # names are alphanumeric camelCase (Data Service rejects underscores).
+    a = state.artifacts
+    if DRY_RUN:
+        title = state.plan.get("feature_name") or f"Release {state.plan.get('version', '')}"
+        print(f"[amplify] DRY-RUN — NOT writing to {ENTITY}. Would store: [{state.kind}] {title!r}")
+        return {"entity_id": "dry-run (not persisted)"}
     sdk = _sdk()
     ent = sdk.entities.retrieve_by_name(ENTITY)
-    a = state.artifacts
 
     # Clamp each value to its Data Service field length limit — the model's copy is free-form and
     # can exceed a field's cap (Data Service 400s the whole insert otherwise). Non-destructive:
