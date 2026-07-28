@@ -7,6 +7,25 @@ Everything except this deployment is validated live: auth, ingest (private repo)
 > **Tokens expire ~1h.** Re-run `../.agentvenv/bin/uipath auth --staging` before any local step
 > if you see "Access token is expired". In production the runtime injects fresh tokens.
 
+## Option C — run the agent ON the toolchain robot (end-to-end, in-process) ⭐
+The deployed agent renders the feature **video in-process** when it runs on a machine that has the
+toolchain + this repo, so one invoke goes ingest → author → **render+upload** → store with no second
+process. On the serverless runtime it still works for **release** (in-cloud HTML) and gracefully
+skips video.
+
+**On the unattended robot machine (the folder already has the robot):**
+1. Install **Node 22+ / bun / headless Chrome / FFmpeg**; `git clone` this repo; `bun install`.
+2. Set these env vars for the agent's runtime on that machine:
+   - `REPO_DIR=<path to the cloned repo>`  ← triggers in-process render
+   - `HYPERFRAMES_NODE_BIN="$(dirname "$(nvm which stable)")"` (a Node 22+ bin dir)
+   - `AMPLIFY_LLM_MODEL=anthropic.claude-opus-4-8`, `AMPLIFY_GITHUB_ASSET=AmplifyGitHubPat`,
+     `AMPLIFY_FOLDER_PATH=Shared`, `AMPLIFY_ENTITY=EnablementAsset`, `AMPLIFY_BUCKET=amplify-assets`.
+3. Create the `amplify-agent` **process in Shared bound to this unattended robot** (not serverless),
+   so its jobs execute on the toolchain machine. Then a trigger/invoke renders the video in-process.
+   - The agent's `author` now emits **component-based v3 scenes** (intro/statement/capability/flow/
+     bigstat/cta) that `build-plan.ts` renders directly — verified end-to-end.
+   - One job at a time per machine (build-plan writes to `out/latest-v2`).
+
 ## 0. Release vs video — where each renders
 - **Release** (one-pager + digest, HTML) renders **in the agent, in the serverless cloud**
   (`release_render.py`) and uploads to the bucket directly. **No robot needed** — fully automatic.

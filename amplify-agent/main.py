@@ -30,6 +30,7 @@ FOLDER = os.environ.get("AMPLIFY_FOLDER_PATH", "Shared")          # Orchestrator
 ENTITY = os.environ.get("AMPLIFY_ENTITY", "EnablementAsset")      # Data Service entity name
 RENDER_PROCESS = os.environ.get("AMPLIFY_RENDER_PROCESS", "amplify-render")
 BUCKET = os.environ.get("AMPLIFY_BUCKET", "amplify-assets")       # Storage Bucket for generated assets
+REPO_DIR = os.environ.get("REPO_DIR", "")                         # Option C: repo path on a toolchain machine → render video in-process
 LLM_MODEL = os.environ.get("AMPLIFY_LLM_MODEL", "anthropic.claude-opus-4-8")  # from `uipath list-models`
 # NOTE: we call Claude via UiPathChatAnthropicBedrock (LangChain, model-aware). The lower-level
 # sdk.llm.chat_completions always sends `temperature`, which opus-4.7/4.8 & sonnet-5 reject (400);
@@ -144,12 +145,25 @@ AUTHOR_SYS = {
         'Then add a top-level "claim_status" = "reviewed" if every value_line is supported by the notes, else "flags".'
     ),
     "feature": (
-        "You are Amplify's content director. From the PR (+ any linked Jira) below, author a grounded VideoPlan v3 "
-        "as strict JSON (feature_name, product (the CONCISE UiPath product or product-line name this feature is in "
-        "— e.g. \"Amplify\", \"Verticals\" — not a long description), value_prop, persona, "
-        "when_to_use, talking_points[], objections[], scenes[], youtube_metadata). "
-        "Ground every claim in the diff/notes; never invent. "
-        'Add a top-level "claim_status" = "reviewed" or "flags".'
+        "You are Amplify's content director. From the PR (+ any linked Jira) below, author a grounded, "
+        "RENDERABLE VideoPlan v3 as strict JSON. Ground every claim in the diff/notes; never invent.\n"
+        "Top-level keys: feature_name, product (CONCISE UiPath product/product-line name — e.g. \"Amplify\", "
+        "\"Verticals\", \"Maestro\" — not a long description), value_prop, persona, when_to_use, "
+        "talking_points[], objections[] (each {q,a}), music_mood (one of \"uplifting\",\"corporate\",\"calm\"), "
+        "scenes[], youtube_metadata ({title,description,tags[],chapters[] of {title,start}}), and claim_status.\n"
+        "scenes[] MUST be 6-8 entries, each EXACTLY {id (letters/digits/-/_ only), component, props, "
+        "narration (1-3 spoken sentences)}. Use ONLY these components, with EXACTLY these prop keys (no others):\n"
+        "  intro      props {tagline}\n"
+        "  statement  props {headline, highlight?, sub?, eyebrow?, eyebrowColor? (a #hex color)}\n"
+        "  capability props {eyebrow, items[] of {icon (one emoji), title, desc}}\n"
+        "  flow       props {eyebrow, nodes[] of {icon (one emoji), label}, highlightIndex? (int)}\n"
+        "  bigstat    props {eyebrow, number, unit?, caption}\n"
+        "  cta        props {headline}\n"
+        "Suggested arc: statement (sharp problem hook) -> statement or capability (name the capability + value) "
+        "-> flow (where it fits / the steps) -> capability or bigstat (how it works / a grounded proof point) "
+        "-> statement (positioning: when a customer should use it) -> cta (call to action). "
+        "Keep on-screen text short and legible; every scene needs grounded narration. "
+        'Add top-level "claim_status" = "reviewed" or "flags".'
     ),
 }
 
@@ -173,6 +187,42 @@ def _safe_seg(seg: str) -> str:
     # allowlist for a bucket blob-path segment — no '/', no '..', no traversal (path-traversal).
     seg = re.sub(r"[^A-Za-z0-9._-]", "-", seg or "").strip("-.") or "asset"
     return seg[:80]
+
+
+def _upload_bucket(sdk, local_path, blob: str) -> str:
+    sdk.buckets.upload(name=BUCKET, blob_file_path=blob, source_path=str(local_path), folder_path=FOLDER)
+    return f"bucket://{BUCKET}/{blob}"
+
+
+def _render_video_locally(plan: dict, prefix: str) -> dict:
+    # Option C: render the feature video IN-PROCESS via the TS pipeline — ONLY when this agent runs
+    # on a machine that has the toolchain (bun + Node/Chrome/FFmpeg) and the repo checked out at
+    # REPO_DIR. Returns {} (falsy) when the toolchain isn't present, so the caller falls back.
+    import shutil
+    import subprocess
+    import tempfile
+    from pathlib import Path
+    bun = shutil.which("bun")
+    if not REPO_DIR or not bun or not Path(REPO_DIR, "src/pipeline/build-plan.ts").exists():
+        return {}
+    env = dict(os.environ)
+    node_bin = os.environ.get("HYPERFRAMES_NODE_BIN")
+    if node_bin:
+        env["PATH"] = f"{node_bin}:{env.get('PATH', '')}"
+    with tempfile.TemporaryDirectory() as tmp:
+        plan_path = os.path.join(tmp, "plan.json")
+        Path(plan_path).write_text(json.dumps(plan))
+        subprocess.run([bun, "run", "src/pipeline/build-plan.ts", plan_path], cwd=REPO_DIR, env=env, check=True)
+    base = Path(REPO_DIR, "out/latest-v2")
+    sdk = _sdk()
+    out: dict = {}
+    vid = base / "renders" / "video.mp4"
+    op = base / "onepager" / "onepager.pdf"
+    if vid.exists():
+        out["video_url"] = _upload_bucket(sdk, vid, f"{prefix}/video.mp4")
+    if op.exists():
+        out["onepager_url"] = _upload_bucket(sdk, op, f"{prefix}/onepager.pdf")
+    return out
 
 
 def render(state: AgentState) -> dict:
@@ -199,13 +249,16 @@ def render(state: AgentState) -> dict:
             "render_status": "rendered",
         }}
 
-    # FEATURE (video): needs Chrome/FFmpeg. Start the amplify-render job on the UNATTENDED robot
-    # (Orchestrator dispatches server-initiated jobs only to unattended robots). The job runs async
-    # and uploads to deterministic bucket paths (same _safe scheme render.py uses) — store those now;
-    # the files land when the robot finishes. If the process isn't deployed yet, skip gracefully so
-    # the run still completes and stores the plan.
+    # FEATURE (video): needs the Node/Bun/Chrome/FFmpeg toolchain.
+    #  1) Option C — if THIS agent runs on a toolchain machine (REPO_DIR + bun present), render the
+    #     video IN-PROCESS and upload to the bucket: fully end-to-end in the agent, no second process.
+    #  2) Else offload to the amplify-render process on an unattended robot (async; deterministic paths).
+    #  3) Else skip gracefully so the run still completes and stores the plan.
     version = _safe_seg(str(plan.get("version") or plan.get("feature_name") or "asset"))
     prefix = f"amplify/{version}"
+    local = _render_video_locally(plan, prefix)
+    if local:
+        return {"artifacts": {**local, "render_status": "rendered (in-process)"}}
     try:
         _sdk().processes.invoke(
             RENDER_PROCESS,
@@ -214,7 +267,7 @@ def render(state: AgentState) -> dict:
         )
     except Exception as e:
         msg = (str(e).splitlines() or [""])[0][:200] or e.__class__.__name__
-        return {"artifacts": {"render_status": f"skipped: render process unavailable ({msg})"}}
+        return {"artifacts": {"render_status": f"skipped: no local toolchain and render process unavailable ({msg})"}}
     return {"artifacts": {
         "video_url": f"bucket://{BUCKET}/{prefix}/video.mp4",
         "onepager_url": f"bucket://{BUCKET}/{prefix}/onepager.pdf",
