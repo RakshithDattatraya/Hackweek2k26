@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the Amplify Hackweek submission deck (4 slides) on the UiPath template,
+"""Build the Amplify submission deck (4 slides) on the UiPath template,
 with graphical elements: concept flow, pain cards, a gap chart, an Azure-style
 pipeline chevron flow, output chips, a stand-out band, and benefit badges."""
 import copy
@@ -375,5 +375,5 @@ for sh in p.slides[4].shapes:
     if sh.has_text_frame and sh.name.startswith("Slide Number"):
         fill(sh.text_frame, [("5", {})])
 
-p.save("Amplify-hackweek.pptx")
-print("saved Amplify-hackweek.pptx  slides:", len(p.slides._sldIdLst))
+p.save("Amplify.pptx")
+print("saved Amplify.pptx  slides:", len(p.slides._sldIdLst))

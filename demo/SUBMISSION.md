@@ -1,4 +1,4 @@
-# Amplify — Feature → Enablement Pipeline (Hackweek Submission)
+# Amplify — Feature → Enablement Pipeline
 
 *Every ship, amplified to sales.*
 

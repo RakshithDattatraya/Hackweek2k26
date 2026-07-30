@@ -1,6 +1,6 @@
 # Feature → Enablement Video Pipeline — Project Brief
 
-> Hackweek project. Working context / handoff doc. Read this first.
+> Working context / handoff doc. Read this first.
 > When a developer merges a feature, generate high-production enablement content
 > (video + one-pager) good enough that (a) sales *understands* the feature and
 > (b) it can be *shown to customers*, and shippable to YouTube for enablement.
@@ -26,9 +26,9 @@ fails because someone reconstructs this context weeks later.
 - **Two audiences, two cuts, ONE plan.** "Sales understands" (internal, rough bar,
   keeps positioning/objection-handling) vs "show customers" (polished, legal/brand
   bar, strips internal segments). Emit both cuts from one video plan.
-  For hackweek, build the **internal-enablement cut** — it's the stated primary
+  For now, build the **internal-enablement cut** — it's the stated primary
   goal and has the lower polish/legal bar.
-- **The hackweek judge cares about the OUTPUT, not the architecture.** A hardcoded
+- **The judge cares about the OUTPUT, not the architecture.** A hardcoded
   happy-path that produces a genuinely premium 45s video beats a fully-automated
   pipeline with mediocre output. Protect video-quality time; treat automation as
   the means. Commit early to "the video must look genuinely good" as north star.
@@ -112,7 +112,7 @@ Node.js 22+, FFmpeg. `npx skills add heygen-com/hyperframes --all` (or `--skill 
    - *Scripting*: director's `demo_steps` → Playwright script (or reuse existing E2E test — cheapest, the test already knows the happy path).
    - *Recording*: `npx hyperframes capture` (browser products). Fallback: engineer records a clip (desktop/gated-auth features).
    - *Camera director*: **emit zoom targets DURING capture, don't guess after.** Playwright knows each interacted element's bbox → output a timed ROI track `{t, focus: bbox(x,y,w,h), action}`. Compositor eases zoom onto the box. Automate *targeting*; hand-tune *motion* (easing, hold) — bad auto-zoom is worse than none.
-   - **Hidden dependency: a stable demo environment with realistic data + working auth.** Often the real blocker. For hackweek pick a feature whose staging env you control.
+   - **Hidden dependency: a stable demo environment with realistic data + working auth.** Often the real blocker. Pick a feature whose staging env you control.
 4. **Dynamic asset generators** (per-video, feature-specific, all consume tokens):
    callout/annotation layer (arrows/spotlight, driven by ROI track), code-defined
    diagrams (NOT model-drawn — hallucination risk), title/section cards, kinetic
@@ -156,7 +156,7 @@ youtube_metadata: { title, description, tags, chapters[] }
 **Constraint: do NOT invent claims the diff doesn't support.** A hallucinated
 benefit shown to a customer is the failure that kills trust.
 
-## 8. Suggested hackweek build order
+## 8. Suggested build order
 
 - **Day 1** — Spike `/pr-to-video` on a real UiPath PR. Two questions: how close is
   default output, and how hard is it to override creative direction with our brand

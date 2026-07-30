@@ -2,7 +2,7 @@
 
 **From merged to market — automatically.** When a feature ships, Amplify turns it into sales-ready enablement — a grounded one-pager and video — and stores it straight into UiPath Data Service.
 
-> UiPath Hackweek project. This repo is both the **deployable coded agent** and the **video/one-pager production pipeline** behind it.
+> This repo is both the **deployable coded agent** and the **video/one-pager production pipeline** behind it.
 
 ---
 
