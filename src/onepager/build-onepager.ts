@@ -23,7 +23,11 @@ export function buildOnePager(
   mkdirSync(join(outDir, "assets"), { recursive: true });
 
   const logoSrc = opts.logoSrcPath ?? join(process.cwd(), "brand/logos/uipath-logo-orange.png");
-  if (existsSync(logoSrc)) execFileSync("cp", [logoSrc, join(outDir, "assets/uipath-logo-orange.png")]);
+  let logoDataUri: string | undefined;
+  if (existsSync(logoSrc)) {
+    execFileSync("cp", [logoSrc, join(outDir, "assets/uipath-logo-orange.png")]);
+    logoDataUri = pngToDataUri(logoSrc);  // inline so the HTML is self-contained (bucket-safe)
+  }
 
   let heroDataUri: string | undefined;
   if (opts.videoPath && existsSync(opts.videoPath)) {
@@ -36,7 +40,7 @@ export function buildOnePager(
     } catch { /* no still — page still renders */ }
   }
 
-  const html = renderOnePagerHtml(plan, t, { heroDataUri, videoUrl: opts.videoUrl, docsUrl: opts.docsUrl });
+  const html = renderOnePagerHtml(plan, t, { heroDataUri, videoUrl: opts.videoUrl, docsUrl: opts.docsUrl, logoDataUri });
   const htmlPath = join(outDir, "onepager.html");
   writeFileSync(htmlPath, html);
 

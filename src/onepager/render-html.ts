@@ -7,17 +7,15 @@ import { escapeHtml } from "../compose/scene-card";
 export function renderOnePagerHtml(
   plan: VideoPlanV3,
   t: BrandTokens,
-  opts: { heroDataUri?: string; videoUrl?: string; docsUrl?: string; logoRelPath?: string } = {},
+  opts: { heroDataUri?: string; videoUrl?: string; docsUrl?: string; logoRelPath?: string; logoDataUri?: string } = {},
 ): string {
-  const logo = opts.logoRelPath ?? "assets/uipath-logo-orange.png";
+  // Prefer an inline data-URI so the page is self-contained (the logo can't 404 when shown
+  // standalone from a bucket, with no assets/ folder alongside it).
+  const logo = opts.logoDataUri ?? opts.logoRelPath ?? "assets/uipath-logo-orange.png";
   const docsUrl = opts.docsUrl ?? "#";
 
   const points = plan.talking_points
     .map((p) => `<li><span class="chk">&#10003;</span><span>${escapeHtml(p)}</span></li>`)
-    .join("");
-
-  const chips = ["Grounded — never hallucinates", "Human-approved before publish", "Zero effort for engineers"]
-    .map((c) => `<span class="chip"><i>&#10003;</i>${escapeHtml(c)}</span>`)
     .join("");
 
   const objections = plan.objections ?? [];
@@ -73,7 +71,6 @@ export function renderOnePagerHtml(
     </div>
     <div class="body">
       <div class="value">${escapeHtml(plan.value_prop)}</div>
-      <div class="chips">${chips}</div>
       <div class="cols">
         <div class="col"><h3>Who it's for</h3><p>${escapeHtml(plan.persona)}</p></div>
         <div class="col"><h3>When to use</h3><p>${escapeHtml(plan.when_to_use)}</p></div>

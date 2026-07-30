@@ -1,0 +1,187 @@
+{
+  "feature_name": "FinS Loan-Config Admin Experience",
+  "value_prop": "An in-solution, no-code flow that turns a lender's written credit policy into a governed, executable FEEL decision model — the admin reviews an agent-drafted model against the source document, validates the taxonomy, and publishes.",
+  "persona": "FINS solution admins and delivery / SE teams configuring a lender's credit policy",
+  "when_to_use": "When onboarding a new lender's credit policy, or when a policy changes — anytime a written credit policy needs to become governed, automated loan decisions.",
+  "talking_points": [
+    "Turns a written credit policy into a governed, executable decision model — no code, no FINSRule.",
+    "Guided end-to-end flow: create config, upload policy, confirm sources, generate rules, review, taxonomy, publish.",
+    "An agent drafts a first-pass decision model (rule groups + conditions); the admin reviews it beside the source document.",
+    "Manage mode allows post-publish edits with a change log and undo; the config is stamped with its DecisionModelId.",
+    "Runs in-solution (no separate API); the taxonomy passes a scored, gated validation before publish."
+  ],
+  "objections": [
+    {
+      "q": "Does the agent replace the reviewer?",
+      "a": "No — the agent drafts a first-pass decision model; the admin confirms, edits, reorders, adds, or deletes rules against the source policy document. It's human-governed."
+    },
+    {
+      "q": "What happens when the policy changes?",
+      "a": "Manage mode supports post-publish edits with a full change log and undo, and you re-publish a new version. The config always points at its current DecisionModelId."
+    },
+    {
+      "q": "Is this just rules in code again?",
+      "a": "No — FINSRule is retired. The canonical artifact is a FEEL decision model resolved by FINSConfig.DecisionModelId, authored with no code."
+    }
+  ],
+  "music_mood": "corporate",
+  "scenes": [
+    {
+      "id": "hook",
+      "html": "<div style=\"width:100%;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative\"><div class='eb' style=\"font-family:var(--uip-font-body);text-transform:uppercase;letter-spacing:.24em;font-weight:700;font-size:22px;color:var(--uip-teal);margin-bottom:30px\">FinS Vertical Solution · Loan config</div><div class='q' style=\"font-family:var(--uip-font-head);font-weight:800;font-size:76px;letter-spacing:-0.03em;color:var(--uip-white);line-height:1.12;max-width:1400px\">A lender's credit policy is a <span style=\"color:var(--uip-orange)\">100-page PDF.</span></div><div class='sub' style=\"font-family:var(--uip-font-body);font-size:31px;color:var(--uip-white);opacity:.62;margin-top:40px;max-width:1180px;line-height:1.4\">Turning it into automated loan decisions meant someone hand-translating every rule into code.</div></div>",
+      "css": "",
+      "motionScript": "tl.from(root.querySelector('.eb'),{autoAlpha:0,y:16,duration:0.4},start+0.2);tl.from(root.querySelector('.q'),{autoAlpha:0,y:30,duration:0.6,ease:'power3.out'},start+0.5);tl.from(root.querySelector('.sub'),{autoAlpha:0,y:20,duration:0.5},start+1.3);",
+      "narration": "A lender's credit policy is a hundred-page PDF of written rules. And turning it into automated loan decisions used to mean someone hand-translating every one of those rules into code.",
+      "transitionOut": "tl.to(root,{autoAlpha:0,y:-28,duration:0.6,ease:'power2.in'},at)",
+      "transitionOverlap": 0.6
+    },
+    {
+      "id": "capability",
+      "html": "<div style=\"width:100%;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative\"><div class='eb' style=\"font-family:var(--uip-font-body);text-transform:uppercase;letter-spacing:.24em;font-weight:700;font-size:22px;color:var(--uip-teal);margin-bottom:30px\">The loan-config admin experience</div><div class='h' style=\"font-family:var(--uip-font-head);font-weight:800;font-size:60px;letter-spacing:-0.025em;color:var(--uip-white);line-height:1.14;max-width:1360px\">Policy in. A governed <span style=\"color:var(--uip-orange)\">decision model</span> out.</div><div class='sub' style=\"font-family:var(--uip-font-body);font-size:30px;color:var(--uip-white);opacity:.64;margin-top:38px;max-width:1200px;line-height:1.4\">An in-solution flow that turns a written credit policy into an executable decision model &mdash; <span style=\"color:var(--uip-teal)\">no code.</span></div></div>",
+      "css": "",
+      "motionScript": "tl.from(root.querySelector('.eb'),{autoAlpha:0,duration:0.4},start+0.2);tl.from(root.querySelector('.h'),{autoAlpha:0,y:24,duration:0.55,ease:'power3.out'},start+0.4);tl.from(root.querySelector('.sub'),{autoAlpha:0,y:18,duration:0.5},start+1.2);",
+      "narration": "Now the loan-config admin experience does it for you. Policy documents go in, and a governed, executable decision model comes out — entirely in-solution, with no code.",
+      "transitionOut": "tl.to(root,{xPercent:-10,autoAlpha:0,duration:0.6,ease:'power2.inOut'},at)",
+      "transitionOverlap": 0.6
+    },
+    {
+      "id": "flow",
+      "html": "<div style=\"width:100%;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative\"><div class='eb' style=\"font-family:var(--uip-font-body);text-transform:uppercase;letter-spacing:.24em;font-weight:700;font-size:22px;color:var(--uip-teal);margin-bottom:30px\">End to end, in one flow</div><div class='h' style=\"font-family:var(--uip-font-head);font-weight:700;font-size:46px;letter-spacing:-0.02em;color:var(--uip-white);margin-bottom:52px\">Seven guided steps.</div><div class='row' style=\"display:flex;align-items:flex-start;justify-content:center;flex-wrap:nowrap\"><div class='st' style=\"display:flex;flex-direction:column;align-items:center;gap:10px;min-width:150px\"><div style=\"width:46px;height:46px;border-radius:50%;background:#2D373C;border:1px solid #3C464B;display:flex;align-items:center;justify-content:center;font-family:var(--uip-font-head);font-weight:800;font-size:20px;color:var(--uip-teal)\">1</div><div style=\"font-family:var(--uip-font-body);font-weight:600;font-size:19px;color:var(--uip-white);opacity:.9;line-height:1.2\">Create<br>config</div></div><div class='cn' style=\"flex:0 0 auto;width:34px;height:2px;background:#3C464B;margin-top:23px\"></div><div class='st' style=\"display:flex;flex-direction:column;align-items:center;gap:10px;min-width:150px\"><div style=\"width:46px;height:46px;border-radius:50%;background:#2D373C;border:1px solid #3C464B;display:flex;align-items:center;justify-content:center;font-family:var(--uip-font-head);font-weight:800;font-size:20px;color:var(--uip-teal)\">2</div><div style=\"font-family:var(--uip-font-body);font-weight:600;font-size:19px;color:var(--uip-white);opacity:.9;line-height:1.2\">Upload<br>policy</div></div><div class='cn' style=\"flex:0 0 auto;width:34px;height:2px;background:#3C464B;margin-top:23px\"></div><div class='st' style=\"display:flex;flex-direction:column;align-items:center;gap:10px;min-width:150px\"><div style=\"width:46px;height:46px;border-radius:50%;background:#2D373C;border:1px solid #3C464B;display:flex;align-items:center;justify-content:center;font-family:var(--uip-font-head);font-weight:800;font-size:20px;color:var(--uip-teal)\">3</div><div style=\"font-family:var(--uip-font-body);font-weight:600;font-size:19px;color:var(--uip-white);opacity:.9;line-height:1.2\">Confirm<br>sources</div></div><div class='cn' style=\"flex:0 0 auto;width:34px;height:2px;background:#3C464B;margin-top:23px\"></div><div class='st' style=\"display:flex;flex-direction:column;align-items:center;gap:10px;min-width:150px\"><div style=\"width:46px;height:46px;border-radius:50%;background:#2D373C;border:1px solid #3C464B;display:flex;align-items:center;justify-content:center;font-family:var(--uip-font-head);font-weight:800;font-size:20px;color:var(--uip-teal)\">4</div><div style=\"font-family:var(--uip-font-body);font-weight:600;font-size:19px;color:var(--uip-white);opacity:.9;line-height:1.2\">Generate<br>rules</div></div><div class='cn' style=\"flex:0 0 auto;width:34px;height:2px;background:#3C464B;margin-top:23px\"></div><div class='st' style=\"display:flex;flex-direction:column;align-items:center;gap:10px;min-width:150px\"><div style=\"width:46px;height:46px;border-radius:50%;background:#2D373C;border:1px solid #3C464B;display:flex;align-items:center;justify-content:center;font-family:var(--uip-font-head);font-weight:800;font-size:20px;color:var(--uip-teal)\">5</div><div style=\"font-family:var(--uip-font-body);font-weight:600;font-size:19px;color:var(--uip-white);opacity:.9;line-height:1.2\">Review</div></div><div class='cn' style=\"flex:0 0 auto;width:34px;height:2px;background:#3C464B;margin-top:23px\"></div><div class='st' style=\"display:flex;flex-direction:column;align-items:center;gap:10px;min-width:150px\"><div style=\"width:46px;height:46px;border-radius:50%;background:#2D373C;border:1px solid #3C464B;display:flex;align-items:center;justify-content:center;font-family:var(--uip-font-head);font-weight:800;font-size:20px;color:var(--uip-teal)\">6</div><div style=\"font-family:var(--uip-font-body);font-weight:600;font-size:19px;color:var(--uip-white);opacity:.9;line-height:1.2\">Taxonomy</div></div><div class='cn' style=\"flex:0 0 auto;width:34px;height:2px;background:#3C464B;margin-top:23px\"></div><div class='st' style=\"display:flex;flex-direction:column;align-items:center;gap:10px;min-width:150px\"><div style=\"width:46px;height:46px;border-radius:50%;background:#2D373C;border:1px solid #3C464B;display:flex;align-items:center;justify-content:center;font-family:var(--uip-font-head);font-weight:800;font-size:20px;color:var(--uip-teal)\">7</div><div style=\"font-family:var(--uip-font-body);font-weight:600;font-size:19px;color:var(--uip-white);opacity:.9;line-height:1.2\">Publish</div></div></div></div>",
+      "css": "",
+      "motionScript": "tl.from(root.querySelector('.eb'),{autoAlpha:0,duration:0.4},start+0.2);tl.from(root.querySelector('.h'),{autoAlpha:0,y:20,duration:0.5,ease:'power3.out'},start+0.4);tl.from(root.querySelectorAll('.st'),{autoAlpha:0,y:24,duration:0.4,stagger:0.16,ease:'power2.out'},start+1.0);tl.from(root.querySelectorAll('.cn'),{scaleX:0,transformOrigin:'left center',duration:0.25,stagger:0.16,ease:'power1.out'},start+1.15);",
+      "narration": "It's one guided flow, end to end. Create a configuration, upload the policy, confirm the data sources, generate rules, review them, build the taxonomy, and publish.",
+      "transitionOut": "tl.to(root,{autoAlpha:0,y:-24,duration:0.6,ease:'power2.inOut'},at)",
+      "transitionOverlap": 0.6
+    },
+    {
+      "id": "insight",
+      "html": "<div style=\"width:100%;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative\"><div class='eb' style=\"font-family:var(--uip-font-body);text-transform:uppercase;letter-spacing:.24em;font-weight:700;font-size:22px;color:#FB6B45;margin-bottom:30px\">The shift</div><div class='h' style=\"font-family:var(--uip-font-head);font-weight:700;font-size:56px;letter-spacing:-0.02em;color:var(--uip-white);line-height:1.16;max-width:1320px\">An agent <span style=\"color:var(--uip-teal)\">drafts</span> the model.<br>You <span style=\"color:var(--uip-orange)\">review</span> it &mdash; you don't write it.</div><div class='sub' style=\"font-family:var(--uip-font-body);font-size:29px;color:var(--uip-white);opacity:.62;margin-top:38px;max-width:1220px;line-height:1.4\">The agent reads the policy and produces a first-pass decision model &mdash; rule groups and conditions &mdash; beside the source document.</div></div>",
+      "css": "",
+      "motionScript": "tl.from(root.querySelector('.eb'),{autoAlpha:0,duration:0.4},start+0.2);tl.from(root.querySelector('.h'),{autoAlpha:0,y:24,duration:0.6,ease:'power3.out'},start+0.4);tl.from(root.querySelector('.sub'),{autoAlpha:0,y:18,duration:0.5},start+1.4);",
+      "narration": "Here's the shift. An agent reads the policy and drafts a first-pass decision model — rule groups and conditions. You review it against the source document; you don't write it.",
+      "transitionOut": "tl.to(root,{autoAlpha:0,scale:0.96,duration:0.6,ease:'power2.in'},at)",
+      "transitionOverlap": 0.6
+    },
+    {
+      "id": "demo",
+      "footage": {
+        "clipPath": "demo-assets/pr715-demo-reel.mp4",
+        "zoom": [
+          {
+            "at": 0.0,
+            "scale": 1.0,
+            "x": 0.5,
+            "y": 0.5
+          },
+          {
+            "at": 30.5,
+            "scale": 1.0,
+            "x": 0.5,
+            "y": 0.5
+          },
+          {
+            "at": 31.5,
+            "scale": 1.3,
+            "x": 0.7,
+            "y": 0.55,
+            "ease": "smooth"
+          },
+          {
+            "at": 36.5,
+            "scale": 1.3,
+            "x": 0.7,
+            "y": 0.55
+          },
+          {
+            "at": 37.5,
+            "scale": 1.0,
+            "x": 0.5,
+            "y": 0.5,
+            "ease": "smooth"
+          },
+          {
+            "at": 52.3,
+            "scale": 1.0,
+            "x": 0.5,
+            "y": 0.5
+          }
+        ],
+        "narration": "Here's the whole experience, right in the FinS solution. It starts with the lender's credit policy — you upload the source documents, and an agent reads them and generates the data-validation rules: over two hundred, across twenty-one sources. Then you review. The rules appear as a decision-model tree, right beside the source document — rule groups and conditions, all editable. Confirm what's correct, reorder, or refine any rule, with the policy always in view. Editing is direct: name a rule, set its group, adjust its fields, and save — no code. Then the documents are classified and validated against the model, so the taxonomy is scored and reviewed. And finally, publish — rules, models, and taxonomy all signed off, the configuration stamped with its decision model."
+      },
+      "transitionOverlap": 0.0
+    },
+    {
+      "id": "trust",
+      "html": "<div style=\"width:100%;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative\"><div class='eb' style=\"font-family:var(--uip-font-body);text-transform:uppercase;letter-spacing:.24em;font-weight:700;font-size:22px;color:var(--uip-teal);margin-bottom:30px\">Governed by design</div><div class='h' style=\"font-family:var(--uip-font-head);font-weight:700;font-size:54px;letter-spacing:-0.02em;color:var(--uip-white);margin-bottom:38px\">The model is the single source of truth.</div><div class='badges' style=\"display:flex;flex-direction:column;gap:16px\"><div class='bd' style=\"display:flex;align-items:center;gap:14px;background:#2D373C;border:1px solid #3C464B;border-radius:12px;padding:18px 24px;min-width:640px;text-align:left\"><span style=\"flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:rgba(11,162,179,.16);color:var(--uip-teal);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800\">&#10003;</span><span style=\"font-family:var(--uip-font-body);font-size:25px;color:var(--uip-white);opacity:.9\">Canonical FEEL decision model &mdash; FINSRule retired</span></div><div class='bd' style=\"display:flex;align-items:center;gap:14px;background:#2D373C;border:1px solid #3C464B;border-radius:12px;padding:18px 24px;min-width:640px;text-align:left\"><span style=\"flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:rgba(11,162,179,.16);color:var(--uip-teal);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800\">&#10003;</span><span style=\"font-family:var(--uip-font-body);font-size:25px;color:var(--uip-white);opacity:.9\">In-solution &mdash; no separate API to stand up</span></div><div class='bd' style=\"display:flex;align-items:center;gap:14px;background:#2D373C;border:1px solid #3C464B;border-radius:12px;padding:18px 24px;min-width:640px;text-align:left\"><span style=\"flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:rgba(11,162,179,.16);color:var(--uip-teal);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800\">&#10003;</span><span style=\"font-family:var(--uip-font-body);font-size:25px;color:var(--uip-white);opacity:.9\">Manage mode: post-publish edits with change log &amp; undo</span></div><div class='bd' style=\"display:flex;align-items:center;gap:14px;background:#2D373C;border:1px solid #3C464B;border-radius:12px;padding:18px 24px;min-width:640px;text-align:left\"><span style=\"flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:rgba(11,162,179,.16);color:var(--uip-teal);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800\">&#10003;</span><span style=\"font-family:var(--uip-font-body);font-size:25px;color:var(--uip-white);opacity:.9\">Taxonomy validated with a scored, gated review</span></div></div></div>",
+      "css": "",
+      "motionScript": "tl.from(root.querySelector('.eb'),{autoAlpha:0,duration:0.4},start+0.2);tl.from(root.querySelector('.h'),{autoAlpha:0,y:20,duration:0.5,ease:'power3.out'},start+0.4);tl.from(root.querySelectorAll('.bd'),{autoAlpha:0,x:-30,duration:0.45,stagger:0.18,ease:'power2.out'},start+1.0);",
+      "narration": "And it's governed by design. The decision model is the single source of truth — the old FINSRule is retired. It runs in-solution with no separate API, edits after publish are tracked with a change log and undo, and the taxonomy passes a scored, gated review.",
+      "transitionOut": "tl.to(root,{autoAlpha:0,y:-24,duration:0.6,ease:'power2.in'},at)",
+      "transitionOverlap": 0.6
+    },
+    {
+      "id": "positioning",
+      "html": "<div style=\"width:100%;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative\"><div class='eb' style=\"font-family:var(--uip-font-body);text-transform:uppercase;letter-spacing:.24em;font-weight:700;font-size:22px;color:#FB6B45;margin-bottom:30px\">When to reach for it</div><div class='h' style=\"font-family:var(--uip-font-head);font-weight:700;font-size:54px;letter-spacing:-0.02em;color:var(--uip-white);max-width:1320px;line-height:1.16;margin-bottom:38px\">Onboard a lender's policy in <span style=\"color:var(--uip-orange)\">hours, not sprints.</span></div><div class='ucs' style=\"display:flex;flex-wrap:wrap;justify-content:center;gap:16px;max-width:1200px\"><div class='uc' style=\"background:rgba(11,162,179,.08);border:1px solid rgba(11,162,179,.28);border-radius:999px;padding:14px 26px;font-family:var(--uip-font-body);font-size:25px;color:#5BCBDE;font-weight:600\">New lender onboarding</div><div class='uc' style=\"background:rgba(11,162,179,.08);border:1px solid rgba(11,162,179,.28);border-radius:999px;padding:14px 26px;font-family:var(--uip-font-body);font-size:25px;color:#5BCBDE;font-weight:600\">A policy change</div><div class='uc' style=\"background:rgba(11,162,179,.08);border:1px solid rgba(11,162,179,.28);border-radius:999px;padding:14px 26px;font-family:var(--uip-font-body);font-size:25px;color:#5BCBDE;font-weight:600\">No-code &amp; governed</div><div class='uc' style=\"background:rgba(11,162,179,.08);border:1px solid rgba(11,162,179,.28);border-radius:999px;padding:14px 26px;font-family:var(--uip-font-body);font-size:25px;color:#5BCBDE;font-weight:600\">Auditable by design</div></div><div class='sub' style=\"font-family:var(--uip-font-body);font-size:28px;color:var(--uip-white);opacity:.62;margin-top:36px;max-width:1180px;line-height:1.4\">When a customer asks how their credit policy becomes automated decisions &mdash; this is the answer.</div></div>",
+      "css": "",
+      "motionScript": "tl.from(root.querySelector('.eb'),{autoAlpha:0,duration:0.4},start+0.2);tl.from(root.querySelector('.h'),{autoAlpha:0,y:24,duration:0.55,ease:'power3.out'},start+0.4);tl.from(root.querySelectorAll('.uc'),{autoAlpha:0,scale:0.7,duration:0.45,stagger:0.14,ease:'back.out(1.6)'},start+1.1);tl.from(root.querySelector('.sub'),{autoAlpha:0,y:18,duration:0.5},start+2.0);",
+      "narration": "Reach for it when you're onboarding a new lender, or when a policy changes. It turns credit-policy configuration from a coding project into a governed, auditable, no-code flow — the answer when a customer asks how their policy becomes automated decisions.",
+      "transitionOut": "tl.to(root,{autoAlpha:0,scale:0.96,duration:0.6,ease:'power2.inOut'},at)",
+      "transitionOverlap": 0.6
+    },
+    {
+      "id": "cta",
+      "html": "<div style=\"width:100%;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative\"><div class='glow' style=\"position:absolute;width:980px;height:980px;border-radius:50%;background:radial-gradient(circle,rgba(250,70,22,.16),transparent 62%);filter:blur(24px);z-index:0\"></div><div style=\"position:relative;z-index:1;display:flex;flex-direction:column;align-items:center\"><div class='eb' style=\"font-family:var(--uip-font-body);text-transform:uppercase;letter-spacing:.24em;font-weight:700;font-size:22px;color:var(--uip-teal);margin-bottom:30px\">FinS Vertical Solution</div><div class='h' style=\"font-family:var(--uip-font-head);font-weight:800;font-size:64px;letter-spacing:-0.03em;color:var(--uip-white);line-height:1.1;max-width:1360px\">From credit policy to <span style=\"color:var(--uip-orange)\">published decision model.</span></div><div class='sub' style=\"font-family:var(--uip-font-body);font-size:30px;color:var(--uip-white);opacity:.7;margin-top:26px\">The loan-config admin experience &mdash; now in the FinS solution.</div></div></div>",
+      "css": "",
+      "motionScript": "tl.from(root.querySelector('.eb'),{autoAlpha:0,duration:0.4},start+0.2);tl.from(root.querySelector('.h'),{autoAlpha:0,y:26,scale:0.97,duration:0.6,ease:'back.out(1.3)'},start+0.5);tl.from(root.querySelector('.sub'),{autoAlpha:0,y:18,duration:0.5},start+1.3);tl.to(root.querySelector('.glow'),{scale:1.14,duration:2.6,ease:'sine.inOut',repeat:1,yoyo:true},start+0.4);",
+      "narration": "From a lender's credit policy to a published decision model. The loan-config admin experience — now in the FinS vertical solution.",
+      "duration": 9.0
+    }
+  ],
+  "youtube_metadata": {
+    "title": "FinS Loan-Config Admin Experience — policy to governed decision model",
+    "description": "The FinS vertical solution's loan-config admin experience: an in-solution, no-code flow that turns a lender's written credit policy into a governed, executable FEEL decision model. An agent drafts the rules from the policy; the admin reviews them beside the source document, validates the document taxonomy, and publishes. FINSRule retired; the config is stamped with its DecisionModelId. Overview of PR #715 (merge stack #708→#709→#710).",
+    "tags": [
+      "UiPath",
+      "FinS",
+      "Vertical Solution",
+      "loan config",
+      "decision model",
+      "FEEL",
+      "enablement"
+    ],
+    "chapters": [
+      {
+        "title": "The problem",
+        "start": 0
+      },
+      {
+        "title": "The capability",
+        "start": 10
+      },
+      {
+        "title": "Seven-step flow",
+        "start": 22
+      },
+      {
+        "title": "Agent drafts, you review",
+        "start": 34
+      },
+      {
+        "title": "See it in the solution",
+        "start": 46
+      },
+      {
+        "title": "Governed by design",
+        "start": 82
+      },
+      {
+        "title": "When to use it",
+        "start": 98
+      },
+      {
+        "title": "From policy to published",
+        "start": 114
+      }
+    ]
+  }
+}

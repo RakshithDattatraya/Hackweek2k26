@@ -1,0 +1,211 @@
+# Amplify — How It Works (Internals)
+
+> **One line:** When a feature ships, Amplify turns it into sales-ready enablement — a one-pager and a video — grounded in the actual pull request, on-brand, and stored straight into UiPath Data Service.
+
+- **Trigger:** a Jira issue gets the label `Amplify`
+- **Brain:** Claude Opus 5 (via the UiPath AI Trust Layer)
+- **Runtime:** a UiPath coded agent (Python / LangGraph)
+- **Output:** a row in the `EnablementAsset` Data Service entity + files in a Storage Bucket
+
+---
+
+## TL;DR
+
+Amplify is a UiPath **coded agent** that runs as a graph: `ingest → author → render → store`.
+
+1. A Jira ticket is labelled **`Amplify`** → an Integration Service trigger starts the agent.
+2. The agent reads the ticket, pulls the **linked pull-request URLs**, and fetches the real PR (title, body, diff, commits) from GitHub.
+3. A **content director** (Claude Opus 5) writes a grounded plan — the story, the sales positioning, the objection handling — never inventing a claim the diff doesn't support.
+4. A **camera director**, dynamic on-brand assets, voice, music and captions produce the one-pager and the video.
+5. **QA + claim-check** gates verify it renders clean and that every spoken claim is true.
+6. Assets are uploaded to a Storage Bucket and a row is written to the `EnablementAsset` entity with `reviewStatus = false` — because a merge is a *capture* trigger, not a *publish* trigger. A human approves before anything customer-facing ships.
+
+**The core insight:** the moment of merge is when the engineer has maximum context about what was built and why. Amplify captures it before it evaporates.
+
+---
+
+## The four phases
+
+| Phase | Name | What happens |
+|------|------|--------------|
+| 1 | **Capture** | A Jira label fires the agent; it pulls the linked PRs and reads the real diff. |
+| 2 | **Author** | The content director writes the story; the camera director decides where the eye goes. |
+| 3 | **Produce** | Dynamic on-brand assets, voice, music, captions — rendered to a one-pager and a video. |
+| 4 | **Govern** | QA and claim-check gates, then stored to Data Service as *unreviewed*. |
+
+---
+
+## 1. The trigger — a Jira label
+
+Enablement usually fails because someone reconstructs the context weeks later. So the trigger sits at the moment of maximum context: the ticket.
+
+- Add the label **`Amplify`** to a Jira issue.
+- An **Integration Service** trigger starts the coded agent with the issue key.
+- The agent reads the ticket and extracts the **linked pull-request URLs** from it.
+- Those URLs are handed to ingest.
+
+No form, no copy-paste — labelling the ticket is the whole action.
+
+```
+Jira issue + label "Amplify"  →  IS trigger starts agent  →  read issue → PR links  →  ingest
+```
+
+---
+
+## 2. Inside the graph
+
+The agent is a LangGraph `StateGraph`. Each node is small and single-purpose; state flows between them.
+
+```
+ingest → author → render → store
+```
+
+### 2.1 Ingest & route
+
+**Job:** resolve the ticket to a concrete pull request, fetch its real content, and decide which kind of asset to make.
+
+- Extracts GitHub links from the Jira issue and classifies each:
+  - `/pull/<n>` or a commit URL → **feature** (video + one-pager)
+  - `/releases/tag/…` → **release** (one-pager + digest)
+- Calls `api.github.com` for the PR title, body, diff, files and commits.
+- Authenticated by a GitHub Personal Access Token kept in an **Orchestrator Credential asset** (`AmplifyGitHubPat`), read at run time and never stored in code.
+- Captures the **SPOC** (single point of contact) — the PR assignee or author — so every asset knows who to ask.
+- **Security:** only `api.github.com` is ever called, built from the parsed owner/repo, so there is no arbitrary-host fetch (no SSRF surface).
+
+### 2.2 Content director *(the core IP)*
+
+**Job:** reason over the PR and write what sales actually needs to hear — not a feature dump.
+
+- Claude **Opus 5**, called through the UiPath **AI Trust Layer** (LLM Gateway, `UiPathChatAnthropicBedrock`).
+- Turns the diff into a structured plan:
+  `feature_name, product, value_prop, persona, when_to_use, talking_points[], objections[], scenes[], youtube_metadata`.
+- Writes the hook as a **customer problem**, the **positioning** ("use this when a customer says…"), and **objection handling** — the sales layer a generic product tour lacks.
+- **The hard rule:** ground every claim in the diff. A hallucinated benefit shown to a customer is the failure that kills trust, so the plan may not assert anything the PR doesn't support.
+
+### 2.3 Camera director
+
+**Job:** make screen-capture-with-zoom feel deliberate instead of nauseating.
+
+- Where a demo has real footage, the camera holds a full, everything-visible view by default and pushes in **only on interactions** — selecting an activity, running it, the result — then eases back out.
+- Targeting is emitted as timed **zoom keyframes** (a region of interest per moment).
+- The motion itself — easing, hold, dissolve between beats — is hand-tuned, because bad auto-zoom is worse than none.
+
+### 2.4 Dynamic assets & design tokens
+
+**Job:** generate the on-screen material, on-brand by construction.
+
+- Each beat is a bespoke HTML/CSS scene with authored **GSAP** motion — title cards, code-defined diagrams (e.g. a file → streaming Base64 → file round-trip), callouts, kinetic captions.
+- Every colour and font comes from the UiPath **design-token layer** (`brand/uipath-tokens.json` → CSS variables: Robotic Orange, Agentic Teal, Deep Blue, Poppins, Inter).
+- Own the tokens well and everything downstream is on-brand for free.
+
+### 2.5 Audio
+
+**Job:** voice, music and captions — the cheap, big perceived-quality lift.
+
+- Voice-over synthesised with **ElevenLabs** (its duration drives scene timing, so it runs early).
+- A background music bed is chosen by the plan's `music_mood` from a curated library and **ducked** under the voice.
+- SFX mark scene seams (pops / whooshes).
+- Captions are transcribed with **Whisper** and burned onto the frame inside the caption safe band.
+
+### 2.6 QA & claim-check gates
+
+**Job:** two gates — does it render clean, and is every spoken claim true?
+
+- **Render QA (lint):** on-palette colours (token vars only), deterministic motion, content inside the frame.
+- **Claim-check:** re-reads every line of narration against the PR diff and commits, and flags anything unsupported — metrics, named integrations, absolutes — at `high` or `medium` severity.
+- **Safe to publish** = render-QA is clean **and** no `high`-severity claim survives.
+
+### 2.7 Render
+
+**Job:** turn the plan into files.
+
+- The renderer drives **headless Chrome** across a *paused* GSAP timeline, seeking frame by frame, then muxes with **FFmpeg** to MP4 — deterministic and reproducible.
+- **One-pagers and digests are pure HTML strings**, so they render inside the serverless agent itself.
+- The **video** needs the browser toolchain, so it renders on the **render worker** (see "Where it runs").
+
+### 2.8 Store
+
+**Job:** assets to the bucket, metadata to Data Service — the agent's job ends here.
+
+- Files upload to the **Storage Bucket** `amplify-assets` under a fixed `amplify/<slug>/` prefix (no path traversal).
+- The entity stores durable `bucket://` references — not expiring signed links.
+- A row is written to the **Data Service entity** `EnablementAsset` with all the metadata, and crucially `reviewStatus = false`.
+
+### 2.9 Review & surface
+
+**Job:** a human approves before anything customer-facing ships.
+
+- A **UiPath App** reads `EnablementAsset`, resolves each `bucket://` reference to a fresh download, and shows the video / one-pager for review.
+- Flipping `reviewStatus` is the approval gate; only then does an asset move toward YouTube, the enablement hub, or Slack.
+
+---
+
+## 3. Where it runs — two runtimes, on purpose
+
+Headless-Chrome rendering cannot run inside a serverless sandbox, so the system is deliberately split.
+
+### The coded agent — *serverless*
+A LangGraph Python agent (`uipath` + `uipath-langchain`) in UiPath's managed agent runtime. It ingests, calls the model through the Trust Layer, gates, and stores.
+- Runs end-to-end with no machine to manage.
+- **Releases render here** — the one-pager + digest are pure HTML.
+- Reads secrets from Orchestrator assets at run time.
+
+### The render worker — *has a browser*
+An unattended robot / VM with the browser toolchain — Node, headless Chrome, FFmpeg + the repo.
+- Holds the one thing a sandbox can't: a real browser.
+- Invoked by the agent; writes the MP4 to the same `amplify-assets` bucket.
+- Same pipeline, same design tokens — identical quality.
+
+**Why split?** A one-pager is text, so it renders in the agent and the release path is fully automatic. A video is a browser seeking a timeline frame by frame — that needs Chrome, which the serverless runtime doesn't host. Putting the frame-render on a worker keeps the agent light and the video real.
+
+---
+
+## 4. What gets stored — the `EnablementAsset` entity
+
+One row per asset. Field names are camelCase; URLs are durable `bucket://` references the App resolves on demand.
+
+| Field | Type | What it holds |
+|-------|------|---------------|
+| `assetType` | string | `feature` · `release` |
+| `title` | string | The feature / release name |
+| `product` | string | Concise product line — StudioWeb, Verticals, Maestro… |
+| `description` | string | One-line "what it's about" shown under the title |
+| `spoc` | string | Single point of contact — PR author / assignee |
+| `sourceRef` | string | The PR / release URL it was generated from |
+| `videoUrl` | string | `bucket://` reference to the MP4 |
+| `onepagerUrl` | string | `bucket://` reference to the one-pager |
+| `digestUrl` | string | `bucket://` reference to the release digest |
+| `qaStatus` | string | Render-QA result — `passed` · `flags` |
+| `claimCheckStatus` | string | Claim-check result — `reviewed` · `flags` |
+| `reviewStatus` | boolean | Human approval — **`false`** on generation |
+
+---
+
+## 5. Built on
+
+Two directors (content + camera) are the only things built from scratch; the platform provides the rest and Amplify configures it.
+
+| Component | Role |
+|-----------|------|
+| UiPath Agents SDK | `uipath` · `uipath-langchain` |
+| LangGraph | `StateGraph` orchestration |
+| Claude Opus 5 | reasoning, via AI Trust Layer / Bedrock |
+| Data Service | the `EnablementAsset` entity |
+| Storage Buckets | `amplify-assets` |
+| Orchestrator assets | GitHub PAT (credential), read at run time |
+| Integration Service | Jira (trigger) · GitHub |
+| HyperFrames | headless Chrome + FFmpeg render |
+| GSAP | authored scene motion |
+| ElevenLabs · Whisper | voice · captions |
+
+---
+
+## 6. Honest notes (so nothing here is overstated)
+
+- **Releases are fully automatic and live:** a labelled ticket → one-pager + digest in the bucket and a row in the entity, with no human in the loop.
+- **Feature videos run through the same pipeline;** the frame-render executes on the render worker. A bare serverless agent run stores the plan + metadata but does not itself produce a video — the worker does.
+- **Autonomous vs assisted quality:** the agent's own author produces renderable, on-brand *component-template* videos. The most polished demos (with real footage and bespoke motion) have a creative director in the loop — which is intentional: **capture on merge, human polish before customer-facing publish.**
+
+---
+
+*Amplify — from merged to market, automatically. Merge is the capture trigger, not the publish trigger: the moment of maximum context, caught before it evaporates.*

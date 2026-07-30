@@ -26,3 +26,6 @@ amplify-render/.env
 # uipath build cache
 amplify-agent/__uipath/
 amplify-render/__uipath/
+
+# raw demo footage + reels (internal product recordings, large binaries) — keep local only
+demo-assets/
